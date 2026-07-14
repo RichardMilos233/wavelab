@@ -1,8 +1,11 @@
 name: wavelab
 channels: [conda-forge]
 dependencies:
+  # numpy pinned <2.4: numpy 2.4.x breaks matplotlib's compiled ABI (native
+  # crash on Windows) and is unsupported by numba 0.65.x. matplotlib pinned
+  # <3.11 for the same reason. Verified working: numpy 2.3.5 + matplotlib 3.10.8.
   - python=3.12
-  - numpy
-  - matplotlib
+  - "numpy<2.4"
+  - "matplotlib<3.11"
   - numba
   - pytest
