@@ -16,7 +16,16 @@ class Comparison:
             shared &= set(np.round(s.times, 9))
         return sorted(shared)
 
+    def _check_1d(self):
+        for s in self.solutions:
+            if s.points.ndim > 1:
+                raise NotImplementedError(
+                    f"compare() is 1-D only; solution '{s.solver}' has "
+                    f"dim={s.points.shape[1]} points. Compare d>=2 runs numerically "
+                    f"(e.g. against eq.exact) instead of via compare().")
+
     def rows(self, probe_points=None):
+        self._check_1d()
         if probe_points is None:
             probe_points = min((s.points for s in self.solutions), key=len)
         out = []
@@ -41,6 +50,7 @@ class Comparison:
 
     def plot(self, path=None):
         import matplotlib.pyplot as plt
+        self._check_1d()
         n = len(self.solutions)
         fig, axes = plt.subplots(1, n, figsize=(6 * n, 4.4), squeeze=False)
         for ax, s in zip(axes[0], self.solutions):

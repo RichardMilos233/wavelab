@@ -28,3 +28,12 @@ def test_plot_writes_file(tmp_path):
     out = tmp_path / "cmp.png"
     fig = compare(A, B).plot(path=str(out))
     assert out.exists() and fig is not None
+
+def test_compare_rejects_2d_points():
+    import pytest
+    from wavelab import Solution
+    two_d = Solution(eq=None, solver="explicit_fd", params={}, times=[0.1],
+                     points=np.array([[0 + 0j, 0 + 0j], [1 + 0j, 1 + 0j]]),
+                     u=np.array([[1 + 0j, 2 + 0j]]), meta={})
+    with pytest.raises(NotImplementedError, match="dim"):
+        compare(two_d).rows()
