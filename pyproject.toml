@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wavelab"
+version = "0.1.0"
+description = "Solver toolbox for nonlinear wave equations: FD and branching Monte Carlo"
+requires-python = ">=3.12"
+
+[tool.setuptools]
+packages = ["wavelab", "wavelab.solvers", "wavelab.solvers.mc", "wavelab.experiments"]
+
+[tool.pytest.ini_options]
+markers = ["slow: long-running validation tests (deselect with '-m \"not slow\"')"]
