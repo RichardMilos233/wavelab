@@ -291,10 +291,16 @@ same physics, new home.
    today's figure, `test_fig6_regression.py` + `test_illposed_signature.py` green.
 2. **M2 — speed & validation:** numba backend, `test_closed_forms.py`,
    `test_backends_agree.py`.
-3. **M3 — full method set:** ImplicitFD (1D), MC d=2/3, ExplicitFD d=2,
-   `library.py` complete with all paper cases.
-4. **M4 — experiment polish:** variance_profile, generalized mode_amplification,
-   blowup_scan ergonomics, plotting style pass.
+3. **M3 — full method set:** ✅ done 2026-07-13. ImplicitFD (1D), **plus
+   LinearlyImplicitFD and RegularizedFD** (added once §3.3a showed the θ-scheme
+   cannot be the Fig-7 counterpart), MC d=2/3, ExplicitFD d=2, `library.py` with
+   all 11 paper equations.
+4. **M4 — experiment polish:** ✅ done 2026-07-13. variance_profile, generalized
+   mode_amplification, blowup_scan, 2-D compare guard, `illposedness_report.py`.
+
+**Status: M1–M4 complete, 101 tests green.** Remaining ideas, none started:
+numba backend for d≥2 (needed only for paper-scale 2-D runs), implicit FD in d≥2,
+2-D field visualisation, Deep Galerkin comparison (`../wave_equation/`).
 
 Each milestone ends runnable with green tests. Implementation is planned for a
 separate session (Opus) working from this spec plus a written implementation plan.
