@@ -34,18 +34,31 @@ class BranchingMC:
         return powers, coeffs, probs
 
     def solve(self, eq: WaveEquation, times, points=None) -> Solution:
-        if eq.dim != 1:
-            raise NotImplementedError("BranchingMC supports dim=1 only (M1/M2)")
         times = np.atleast_1d(np.asarray(times, dtype=float))
+        if eq.dim >= 2 and eq.grad_phi is None:
+            raise ValueError(
+                f"BranchingMC needs eq.grad_phi for dim={eq.dim}: the d>=2 boundary "
+                f"functional carries a y.grad(phi)(z+y) term (see spec §3.3)")
         if points is None:
+            if eq.dim >= 2:
+                raise ValueError(f"points is required for dim={eq.dim} "
+                                 f"(shape (P, {eq.dim}) complex); no default grid")
             if eq.domain is None:
                 raise ValueError("points is required when eq.domain is None")
             (a, b), = eq.domain
             points = np.linspace(a, b, 21)
-        points = np.atleast_1d(np.asarray(points, dtype=np.complex128))
+        points = np.asarray(points, dtype=np.complex128)
+        if eq.dim == 1:
+            points = np.atleast_1d(points)
+        elif points.ndim != 2 or points.shape[1] != eq.dim:
+            raise ValueError(f"points must have shape (P, {eq.dim}) for dim={eq.dim}, "
+                             f"got {points.shape}")
         powers, coeffs, probs = self._offspring(eq)
 
         if self.backend == "numba":
+            if eq.dim > 1:
+                raise NotImplementedError(
+                    f"numba backend is dim=1 only; use backend='python' for dim={eq.dim}")
             try:
                 from numba.core.dispatcher import Dispatcher
                 from wavelab.solvers.mc import fast
