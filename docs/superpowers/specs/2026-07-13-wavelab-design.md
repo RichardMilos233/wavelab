@@ -142,7 +142,50 @@ warning — **blow-up is data, not an exception** (it is the ill-posedness
 measurement). d=1 first; d=2 five-point stencil later.
 
 **`ImplicitFD(N, dt, theta=0.5)`** — θ-scheme; each step solves the nonlinear system
-by Newton iteration (tridiagonal Jacobian in d=1). Paper Fig 7 counterpart. d=1 only in v1.
+by Newton iteration. d=1 only. **Not the Fig-7 counterpart** — see §3.3a.
+
+**`LinearlyImplicitFD(N, dt)`** — the paper's *named* method (Mathematica's
+`LinearlyImplicitEuler`): linear part implicit, nonlinear term explicit, one linear
+solve per step. d=1 only. Blows up on a fixed grid — see §3.3a.
+
+**`RegularizedFD(N, dt, k_max)`** — explicit leapfrog + spectral low-pass filter
+(keep only Dirichlet sine modes `k ≤ k_max`). **This is the working Fig-7 analogue.**
+d=1 only.
+
+### 3.3a Finding (2026-07-13): implicit does NOT cure ill-posedness
+
+The plan originally assumed "implicit FD = more stable" (paper Fig 7). Investigation
+showed this is *half* true, and the missing half is the interesting part.
+
+The paper's own sentence is the key: its Fig 7 is produced with Mathematica's
+`LinearlyImplicitEuler`, and it says the implicit scheme "is more stable but exhibits
+a loss of accuracy … **due to loss of energy conservation**." Stability is *bought
+with dissipation*, not earned by implicitness. Consequences, all verified numerically:
+
+| scheme | behaviour on the c=i problem (N=101, dt=0.002) | why |
+|---|---|---|
+| `ExplicitFD` | NaN at t=0.232 | consistent → must amplify the growing modes |
+| `ImplicitFD` (θ=0.5) | **finite garbage** (26 at t=0.2, 1557 at t=0.3) | energy-**conserving**: roots satisfy `g₊g₋ = 1`, so one root is always outside the unit circle. Fails *silently* — worse than explicit, which at least reports NaN. |
+| `LinearlyImplicitFD` | blows up at every dt tried | amplification `g± = 1/(1∓dt√ω)` has a **pole at `dt√ω = 1`**; ω spans 8.9→40000 across modes, so some mode always sits near it |
+| `RegularizedFD` (k_max=12) | **stable to t=0.7, smooth, ~0.15 error** | modes above the cut-off are removed, so their growth can't be excited |
+
+Root cause: the true solution's mode `k` grows like `exp(t·√((kπ)²−1)) ≈ exp(kπt)`, so
+the grid-scale mode grows like `exp(2t/dx)` — unbounded as `dx→0`. **Any consistent
+time-marching scheme must reproduce that growth**, hence must blow up once round-off
+(1e-16) in those modes is amplified to O(1). A scheme only *looks* stable by damping
+modes it should be growing — i.e. by solving a different, regularized problem.
+
+`RegularizedFD` makes that bargain explicit and measurable. The cut-off is the
+regularization, and keeping more modes recovers the ill-posedness you suppressed:
+
+| `k_max` | 12 | 20 | 30 |
+|---|---|---|---|
+| blow-up time | none (survives t=0.7) | 0.64 | 0.438 |
+
+This is the same fingerprint as "refine the grid → blow up sooner", now expressed in
+the variable that actually causes it. **Branching MC needs none of this** — it never
+marches a coupled state forward, so there is no mode to amplify. That contrast is the
+sharpened thesis of the Figure-6 study.
 
 **`BranchingMC(lam=0.25, n=10_000, q=None, backend="python", seed=None, workers=1)`**
 — pointwise estimator of `u(z,t) = E[H]` from the paper's probabilistic
