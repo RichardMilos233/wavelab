@@ -6,7 +6,8 @@ from wavelab.solvers.fd_implicit_linear import LinearlyImplicitFD
 from wavelab.solvers.fd_regularized import RegularizedFD
 from wavelab.solvers.mc import BranchingMC
 from wavelab.experiments.compare import compare, Comparison
+from wavelab import library
 
 __all__ = ["WaveEquation", "Solution", "ExplicitFD", "ImplicitFD",
            "LinearlyImplicitFD", "RegularizedFD", "BranchingMC",
-           "compare", "Comparison"]
+           "compare", "Comparison", "library"]
