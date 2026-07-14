@@ -46,14 +46,32 @@ class BranchingMC:
         powers, coeffs, probs = self._offspring(eq)
 
         if self.backend == "numba":
-            raise NotImplementedError("numba backend arrives in Task 8")
-        rng = np.random.default_rng(self.seed)
-        u = np.empty((len(times), len(points)), dtype=np.complex128)
-        se = np.empty((len(times), len(points)), dtype=float)
-        for i, t in enumerate(times):
-            for j, z in enumerate(points):
-                u[i, j], se[i, j] = reference.estimate(
-                    eq, z, t, self.n, self.lam, powers, coeffs, probs, rng)
+            try:
+                from numba.core.dispatcher import Dispatcher
+                from wavelab.solvers.mc import fast
+            except ImportError as e:
+                raise ImportError("numba backend needs numba: conda install numba") from e
+            for fname, fn in (("phi", eq.phi), ("psi", eq.psi)):
+                if not isinstance(fn, Dispatcher):
+                    raise ValueError(
+                        f"numba backend requires eq.{fname} to be numba.njit-compiled, "
+                        f"e.g. {fname}=numba.njit(lambda z: cmath.sin(math.pi*z)); "
+                        f"or use backend='python'")
+            seed0 = self.seed if self.seed is not None else np.random.SeedSequence().entropy % (2**31)
+            u = np.empty((len(times), len(points)), dtype=np.complex128)
+            se = np.empty((len(times), len(points)), dtype=float)
+            for i, t in enumerate(times):
+                u[i], se[i] = fast.estimate_grid(
+                    points, float(t), self.n, float(self.lam), complex(eq.c),
+                    powers, coeffs, probs, int(seed0) + 100_003 * i, eq.phi, eq.psi)
+        else:
+            rng = np.random.default_rng(self.seed)
+            u = np.empty((len(times), len(points)), dtype=np.complex128)
+            se = np.empty((len(times), len(points)), dtype=float)
+            for i, t in enumerate(times):
+                for j, z in enumerate(points):
+                    u[i, j], se[i, j] = reference.estimate(
+                        eq, z, t, self.n, self.lam, powers, coeffs, probs, rng)
 
         rel = se / np.maximum(np.abs(u), 1e-300)
         if np.any(rel > 0.2):
