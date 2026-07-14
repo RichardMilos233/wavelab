@@ -11,6 +11,7 @@ class WaveEquation:
     f: Mapping[int, complex]          # {k: a_k}, f(u) = sum a_k u^k
     phi: Callable                     # u(z, 0)
     psi: Callable                     # du/dt(z, 0)
+    grad_phi: Optional[Callable] = None   # (d phi/dz_1, ...); required by MC for dim >= 2
     domain: Optional[tuple] = None    # per-axis intervals, e.g. ((0, 1),)
     bc: str = "dirichlet"
     exact: Optional[Callable] = None  # u(z, t) if known
@@ -31,6 +32,15 @@ class WaveEquation:
             except Exception as e:
                 raise ValueError(f"{fname} must accept a complex argument "
                                  f"(dim={self.dim}): {e}") from e
+        if self.dim >= 2 and self.grad_phi is not None:
+            try:
+                g = self.grad_phi(z)
+            except Exception as e:
+                raise ValueError(f"grad_phi must accept a complex vector "
+                                 f"(dim={self.dim}): {e}") from e
+            if len(g) != self.dim:
+                raise ValueError(f"grad_phi must return {self.dim} partial derivatives, "
+                                 f"got {len(g)}")
 
     def f_callable(self) -> Callable:
         items = tuple(self.f.items())
@@ -43,3 +53,16 @@ class WaveEquation:
             return out
 
         return f
+
+    def f_prime_callable(self) -> Callable:
+        """d/du of f: u -> sum k * a_k * u^(k-1). Used by the implicit solver's Newton step."""
+        items = tuple((k, a) for k, a in self.f.items() if k >= 1)
+
+        def fp(u):
+            u = np.asarray(u, dtype=np.complex128)
+            out = np.zeros_like(u)
+            for k, a in items:
+                out = out + k * a * u**(k - 1)
+            return out
+
+        return fp

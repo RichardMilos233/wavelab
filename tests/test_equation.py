@@ -47,3 +47,31 @@ def test_rejects_phi_not_accepting_complex():
 def test_frozen():
     with pytest.raises(Exception):
         sine_eq().dim = 2
+
+def test_f_prime_callable():
+    f1 = sine_eq().f_prime_callable()          # f = -u + u^3  ->  f' = -1 + 3u^2
+    u = np.array([0.5 + 0j, 2.0 + 1j])
+    np.testing.assert_allclose(f1(u), -1 + 3 * u**2)
+    assert f1(u).dtype == np.complex128
+
+def test_f_prime_drops_constant_term():
+    f1 = sine_eq(f={0: 5 + 0j, 2: 1}).f_prime_callable()   # f = 5 + u^2 -> f' = 2u
+    u = np.array([3.0 + 0j])
+    np.testing.assert_allclose(f1(u), 2 * u)
+
+def test_grad_phi_defaults_none_and_is_accepted():
+    assert sine_eq().grad_phi is None
+    eq2 = WaveEquation(dim=2, c=1j, f={2: 1},
+                       phi=lambda z: 6 / (z[0] + z[1])**2,
+                       psi=lambda z: 0j,
+                       grad_phi=lambda z: (-12 / (z[0] + z[1])**3,
+                                           -12 / (z[0] + z[1])**3))
+    g = eq2.grad_phi(np.array([2 + 0j, 2 + 0j]))
+    assert len(g) == 2
+
+def test_rejects_grad_phi_with_wrong_arity():
+    with pytest.raises(ValueError, match="grad_phi"):
+        WaveEquation(dim=2, c=1j, f={2: 1},
+                     phi=lambda z: 6 / (z[0] + z[1])**2,
+                     psi=lambda z: 0j,
+                     grad_phi=lambda z: (1 + 0j,))     # returns 1 value, dim=2
