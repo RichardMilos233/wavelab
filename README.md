@@ -58,6 +58,19 @@ FD dies of ill-posedness; MC dies of variance. See `examples/illposedness_report
 - `examples/fig6_side_by_side.py` — the Figure-6 FD-vs-MC figure
 - `examples/illposedness_report.py` — the full argument in six sections
 
+## Documentation
+
+- **Tutorial (中文, for PDE beginners)** — full derivations from the wave equation
+  to every solver's implementation, detailed enough to rebuild the library from
+  scratch: start at [`docs/tutorial/00-overview.md`](docs/tutorial/00-overview.md).
+- **Agent reference (English)** — progressive-disclosure layer for AI agents:
+  [`CLAUDE.md`](CLAUDE.md) (always-loaded level 1) routes into
+  [`docs/agents/`](docs/agents/README.md) (on-demand level 2: solvers, equations,
+  experiments, gotchas).
+- **Design & plans** — [`docs/superpowers/`](docs/superpowers/) (spec §3.3a holds
+  the ill-posedness finding; plans document how M1–M4 were built).
+- Figures in the tutorial are reproducible: `docs/tutorial/figures/make_figures.py`.
+
 ## Notes
 - Blow-up is **data**, not an error: solvers record `meta["blowup_time"]` and return NaN after it.
 - MC always reports `meta["stderr"]`; pass `seed=` for reproducibility.
