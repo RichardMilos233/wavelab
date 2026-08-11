@@ -165,7 +165,7 @@ with dissipation*, not earned by implicitness. Consequences, all verified numeri
 | scheme | behaviour on the c=i problem (N=101, dt=0.002) | why |
 |---|---|---|
 | `ExplicitFD` | NaN at t=0.232 | consistent → must amplify the growing modes |
-| `ImplicitFD` (θ=0.5) | **finite garbage** (26 at t=0.2, 1557 at t=0.3) | energy-**conserving**: roots satisfy `g₊g₋ = 1`, so one root is always outside the unit circle. Fails *silently* — worse than explicit, which at least reports NaN. |
+| `ImplicitFD` (θ=0.5) | **finite garbage** — O(10) at t=0.2, O(10³) at t=0.3, sign not determined (truth 1.14); the magnitude is amplified round-off and is *not* reproducible across platforms | energy-**conserving**: roots satisfy `g₊g₋ = 1`, so one root is always outside the unit circle (N=101: g\*=1.5129/step ⇒ 1e-16 → O(1) in 89 steps, t≈0.178, exactly the observed onset). Fails *silently* — worse than explicit, which at least reports NaN. |
 | `LinearlyImplicitFD` | blows up at every dt tried | amplification `g± = 1/(1∓dt√ω)` has a **pole at `dt√ω = 1`**; ω spans 8.9→40000 across modes, so some mode always sits near it |
 | `RegularizedFD` (k_max=12) | **stable to t=0.7, smooth, ~0.15 error** | modes above the cut-off are removed, so their growth can't be excited |
 
@@ -174,6 +174,13 @@ the grid-scale mode grows like `exp(2t/dx)` — unbounded as `dx→0`. **Any con
 time-marching scheme must reproduce that growth**, hence must blow up once round-off
 (1e-16) in those modes is amplified to O(1). A scheme only *looks* stable by damping
 modes it should be growing — i.e. by solving a different, regularized problem.
+
+For the θ-scheme this is quantitative: g\*(N=51, 101, 201) = 1.223, 1.513, 2.549 predict
+onset t = 0.37, 0.18, 0.08, and that is where each grid's output goes bad. Past onset
+the Newton solve also ceases to converge (it exits on `newton_maxiter` with residuals of
+1e2–1e4), so the output is not even the θ-scheme's solution — one more reason its value
+is not a measurement. Verified independently on Windows/OpenBLAS and macOS/Accelerate,
+2026-08-11; the solver reports non-convergence in `meta` since then.
 
 `RegularizedFD` makes that bargain explicit and measurable. The cut-off is the
 regularization, and keeping more modes recovers the ill-posedness you suppressed:

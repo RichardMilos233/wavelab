@@ -68,10 +68,13 @@ machine-independent. The ImplicitFD magnitudes are NOT; see the next section.
 ## The ImplicitFD garbage values are NOT reproducible (2026-08-11)
 
 `ImplicitFD(theta=0.5)` on SINE_CI_1D emits finite garbage for `t ≳ 0.2` (spec §3.3a).
-Several docs quote **specific** magnitudes for that garbage — `26.6` at t=0.2, `1557`
-at t=0.3, `1988` at t=0.4 (README table, `docs/agents/solvers.md`, tutorial 03 §3.3
-table and 05 §5.2 table, spec §3.3a). **Those are one machine's round-off, not
-measurements.** Do not treat a mismatch as a regression, and do not "fix" the solver.
+The docs used to quote **specific** magnitudes for that garbage — `26.6` at t=0.2,
+`1557` at t=0.3, `1988` at t=0.4. **Those were one machine's round-off, not
+measurements**, and all five sites (README, `solvers.md`, tutorial 03 §3.3 / 05 §5.2,
+spec §3.3a) were rewritten on 2026-08-11 to state order of magnitude + onset time
+instead. **Rule: quote the time at which the output stops being meaningful, never the
+value it prints there.** Do not treat a mismatch as a regression, and do not "fix" the
+solver. The numbers below are kept as the *evidence* for that rule.
 
 Evidence (N=101, dt=0.002; perturb φ by a *relative* ε, i.e. below double precision):
 
@@ -82,10 +85,35 @@ Evidence (N=101, dt=0.002; perturb φ by a *relative* ε, i.e. below double prec
 | 0.3 | 1557.2 | 1293.11 | **−1519.52 … 1553.41** (sign flips) |
 | 0.4 | 1988.2 | 3161.10 | −1654.91 … 3161.10 |
 
-Why: the θ-scheme's per-step growth exceeds 1.4 on this problem, so over 150 steps
-round-off at 1e-16 is amplified by ~1e22. The value is *entirely* determined by the
-round-off pattern, which differs between LAPACK builds (Accelerate vs OpenBLAS/MKL).
-Runs on one machine are bit-identical; runs across machines are not.
+Why: the θ-scheme's highest grid mode is amplified by **g\* = 1.5129 per step** at N=101
+(don't confuse this with 1.488 — that is the *explicit* scheme's k=99 figure in the
+regression lock). A 1e-16 seed therefore reaches O(1) in `16·ln10/ln g* = 89` steps,
+i.e. **t ≈ 0.178**, exactly where the computed curve departs; the same formula predicts
+the observed onset at N=51 (g\*=1.223, t≈0.37) and N=201 (g\*=2.549, t≈0.08). From there
+the value is *entirely* determined by the round-off pattern, which differs between
+LAPACK builds. Runs on one machine are bit-identical; runs across machines are not.
+Degradation is smooth and measurable: **about one significant digit lost per 10 steps**,
+and past t≈0.19 not even the sign is determined.
+
+Two corrections to the first version of this note (re-verified on Windows/OpenBLAS
+2026-08-11): the linear amplification over 150 steps is 1.5129¹⁵⁰ = **9.4e26**, not 1e22
+— but no quantity is ever literally amplified that far, because growth **saturates** near
+|u|≈5e4 once the cubic term bites (~t=0.28). The load-bearing number is the **89 steps**
+to reach O(1), not any total factor.
+
+**Second stage — Newton stops converging.** Past t≈0.21 the Newton iteration exits on
+`newton_maxiter` with residuals of 1e2–1e4 on ~96 of 199 steps, so the output is not
+even a solution of the θ-scheme. This is the problem's doing, not a bug (raising the cap
+to 500 still gives garbage, and −1782 at t=0.4), but it is now **reported**:
+`meta["newton_failed_steps"]`, `["newton_first_failure_time"]`, `["newton_max_residual"]`,
+plus a warning on first occurrence. It is not the *cause* of the machine-dependence —
+iteration counts are identical across sub-ulp perturbations during the converged phase,
+and thread count (1/2/4/8) changes nothing.
+
+**Single-machine proof that it is round-off**, no second machine needed: swapping
+`np.linalg.solve` for the mathematically equivalent `inv(J)@G`, `lstsq`, or a stencil
+Laplacian gives t=0.3 values of 1557 / 1549 / 2782 / 1653 and **flips the sign** at
+t=0.4, while t=0.1 stays 0.9479 to 5 digits in every route.
 
 This **strengthens** §3.3a rather than weakening it: the θ-scheme's output is not
 merely wrong, it is not even reproducible — its sign is not fixed. That is a sharper

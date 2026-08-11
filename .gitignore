@@ -8,3 +8,5 @@ __pycache__/
 build/
 dist/
 .claude/settings.local.json
+# tool-generated mirror of CLAUDE.md; CLAUDE.md is the source of truth
+AGENTS.md

@@ -46,10 +46,17 @@ scheme must reproduce that growth, hence must blow up.** Measured at N=101, dt=0
 | solver | result at t=0.3 | why |
 |---|---|---|
 | `ExplicitFD` | NaN from t=0.232 | consistent → must amplify |
-| `ImplicitFD` (θ=0.5) | **1557** (truth: 1.14) | energy-**conserving**: roots satisfy `g₊g₋=1`, so a growing root always exists. Fails **silently** — arguably worse than the explicit scheme, which at least reports NaN. |
+| `ImplicitFD` (θ=0.5) | **finite garbage, O(10³)** (truth: 1.14) — the value is not reproducible, see below | energy-**conserving**: roots satisfy `g₊g₋=1`, so a growing root always exists (`g*≈1.51`/step at N=101). Fails **silently** — arguably worse than the explicit scheme, which at least reports NaN. |
 | `LinearlyImplicitFD` | blows up at every dt | `g± = 1/(1∓dt√ω)` has a **pole** at `dt√ω=1` |
 | `RegularizedFD` (k_max=12) | 1.137 ✓, stable to t=0.7 | the runaway modes are simply removed |
 | `BranchingMC` | 1.137 ✓ | never marches a coupled state — nothing to amplify |
+
+The θ-scheme's numbers past t≈0.18 are *amplified round-off*: at `g*≈1.51` per step a
+1e-16 seed reaches O(1) in 89 steps, so the printed value — including its **sign** —
+depends on the machine's floating-point arithmetic. Past t≈0.21 its Newton iteration
+also stops converging (the solver now reports this in `meta` and warns). Quote the time
+at which the output stops being meaningful, never the value it prints there; details in
+`docs/agents/gotchas.md`. That makes the failure sharper, not vaguer.
 
 "Go implicit" is **not** the fix. The paper says so itself: its Figure 7 is "more stable but
 exhibits a loss of accuracy … **due to loss of energy conservation**". Stability is *bought* with

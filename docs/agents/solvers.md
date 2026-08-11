@@ -26,11 +26,18 @@ The per-step `clamp` re-imposing boundary zeros is load-bearing (φ(boundary) ma
 ## ImplicitFD(N=101, dt=0.002, theta=0.5, newton_tol=1e-10, newton_maxiter=50) — `fd_implicit.py`
 
 θ-scheme solved by dense Newton each step (`f_prime_callable` Jacobian). θ∈[0,0.5];
-θ=0 reproduces ExplicitFD to round-off (tested). `meta` adds `theta`, `newton_iters`.
+θ=0 reproduces ExplicitFD to round-off (tested). `meta` adds `theta`, `newton_iters`,
+`newton_failed_steps`, `newton_first_failure_time`, `newton_max_residual`.
 **Energy-conserving ⇒ cannot stabilize the ill-posed problem** — amplification roots
-satisfy g₊g₋=1. On SINE_CI_1D it emits finite garbage (1557 at t=0.3, truth 1.14)
-with `blowup_time=None` — silent failure by design of the mathematics, not a bug.
-Keep it: it is the counterexample.
+satisfy g₊g₋=1 (N=101: g*≈1.513/step, so round-off reaches O(1) in ~89 steps, t≈0.18).
+On SINE_CI_1D it emits finite garbage of order 10³ for t ≳ 0.2 (truth 1.14) with
+`blowup_time=None` — silent failure by design of the mathematics, not a bug.
+The magnitude is machine-dependent (it *is* amplified round-off) — never assert a
+specific value, assert `abs(centre − truth) > 100` as `tests/test_fd_implicit.py` does.
+Two-stage failure: past t≈0.21 Newton also stops converging (exits on `newton_maxiter`,
+residual 1e2–1e4 on ~half the steps), so the output is not even a solution of the
+θ-scheme; the solver records that in `meta` and warns once. Keep it: it is the
+counterexample.
 
 ## LinearlyImplicitFD(N=101, dt=0.01) — `fd_implicit_linear.py`
 

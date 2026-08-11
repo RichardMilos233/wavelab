@@ -84,6 +84,29 @@ def test_newton_converges_quickly():
     assert max(sol.meta["newton_iters"]) <= 6          # quadratic convergence
 
 
+def test_newton_convergence_is_reported_not_assumed():
+    """Second stage of the failure: once the state is amplified round-off, Newton
+    stops converging at all — it exits on newton_maxiter with a residual many orders
+    above tol, so the returned values are not solutions of the theta-scheme either.
+    That is the problem's doing, not a bug, but it must be VISIBLE: meta records it
+    and the first occurrence warns, exactly as blow-up does. No specific magnitude is
+    asserted — those are machine-dependent (see docs/agents/gotchas.md)."""
+    with pytest.warns(UserWarning, match="Newton did not converge"):
+        sol = ImplicitFD(N=101, dt=0.002, theta=0.5).solve(SINE_CI, times=[0.4])
+    assert sol.meta["newton_failed_steps"] > 0
+    assert sol.meta["newton_max_residual"] > 1.0                 # tol is 1e-10
+    t_fail = sol.meta["newton_first_failure_time"]
+    assert 0.15 < t_fail < 0.30        # after round-off onset (~0.18), well before 0.4
+    assert sol.meta["blowup_time"] is None                       # still no NaN
+
+
+def test_newton_reports_clean_convergence_on_the_well_posed_control():
+    sol = ImplicitFD(N=101, dt=0.001).solve(LINEAR, times=[0.5])
+    assert sol.meta["newton_failed_steps"] == 0
+    assert sol.meta["newton_first_failure_time"] is None
+    assert sol.meta["newton_max_residual"] == 0.0
+
+
 def test_theta_validation():
     eq = WaveEquation(dim=1, c=1, f={}, phi=lambda z: 0j, psi=lambda z: 0j)
     with pytest.raises(ValueError, match="domain"):

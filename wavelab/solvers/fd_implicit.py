@@ -11,6 +11,14 @@ Step: solve G(w) = 0 for w = u^{n+1} by Newton, with
   G'(w) = I - dt^2 th ( c^2 L + diag(f'(w)) )
 theta=0 recovers the explicit leapfrog exactly; theta=0.5 is the stable default.
 N <= 201 here, so a dense solve is plenty (and keeps scipy out of the deps).
+
+NEWTON CONVERGENCE IS REPORTED, NOT ASSUMED. On the ill-posed c=i problem the state
+becomes amplified round-off (see gotchas.md), and past t ~ 0.21 Newton stops converging
+altogether: it exits on `newton_maxiter` with residuals of 1e2-1e4 on roughly half the
+steps, so the returned values are not solutions of the theta-scheme at all. That is a
+property of the problem, not a bug to fix — but it must be visible, so it goes into
+`meta` (`newton_failed_steps`, `newton_first_failure_time`, `newton_max_residual`) and
+raises a warning the first time it happens, exactly as blow-up does.
 """
 import warnings
 import numpy as np
@@ -71,6 +79,9 @@ class ImplicitFD:
         out = np.full((len(times), N), np.nan + 1j * np.nan, dtype=np.complex128)
         blowup_time = None
         newton_iters = []
+        newton_failed = 0                  # steps that exhausted newton_maxiter
+        newton_first_failure = None        # time of the first such step
+        newton_max_resid = 0.0             # worst residual accepted anyway
         snaps = {0: u_prev, 1: u}
         for n in range(2, int(steps_of.max()) + 1):
             # everything in G that does not depend on w
@@ -78,11 +89,15 @@ class ImplicitFD:
                      - dt**2 * ((1 - 2 * th) * R(u) + th * R(u_prev)))
             w = u.copy()                                   # Newton initial guess
             it = 0
+            resid = np.inf
+            converged = False
             for it in range(1, self.newton_maxiter + 1):
                 G = w + const - dt**2 * th * R(w)
                 G[0] = w[0]
                 G[-1] = w[-1]
-                if np.max(np.abs(G)) < self.newton_tol:
+                resid = float(np.max(np.abs(G)))
+                if resid < self.newton_tol:
+                    converged = True
                     break
                 J = I - dt**2 * th * (c2 * L + np.diag(fp(w)))
                 J[0, :] = 0.0
@@ -95,6 +110,18 @@ class ImplicitFD:
                     w = np.full(N, np.nan + 1j * np.nan, dtype=np.complex128)
                     break
             newton_iters.append(it)
+            if not converged:
+                newton_failed += 1
+                if np.isfinite(resid):
+                    newton_max_resid = max(newton_max_resid, resid)
+                if newton_first_failure is None:
+                    newton_first_failure = round(n * dt, 10)
+                    warnings.warn(
+                        f"{eq.name or 'equation'}: implicit FD Newton did not converge "
+                        f"at t={newton_first_failure} (residual {resid:.3g} > tol "
+                        f"{self.newton_tol} after {self.newton_maxiter} iterations); "
+                        f"values from here on are NOT solutions of the theta-scheme. "
+                        f"See meta['newton_failed_steps'].")
             w[0] = w[-1] = 0.0
             u_prev, u = u, w
             if not np.all(np.isfinite(u)):
@@ -112,4 +139,7 @@ class ImplicitFD:
                         params={"N": N, "dt": dt, "theta": th},
                         times=times, points=x.astype(np.complex128), u=out,
                         meta={"blowup_time": blowup_time, "dt": dt, "N": N,
-                              "dx": dx, "theta": th, "newton_iters": newton_iters})
+                              "dx": dx, "theta": th, "newton_iters": newton_iters,
+                              "newton_failed_steps": newton_failed,
+                              "newton_first_failure_time": newton_first_failure,
+                              "newton_max_residual": newton_max_resid})
