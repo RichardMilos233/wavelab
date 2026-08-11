@@ -1,6 +1,7 @@
 """Acceptance gate for the fig6_study -> wavelab refactor (spec §6).
-Baseline verified 2026-07-13 in E:\\NTU\\fyp\\fig6_study — do NOT edit the
-expected numbers to make this pass; a mismatch means the port changed physics."""
+Baseline verified 2026-07-13 in the original `fig6_study` sandbox (outside this
+repo) — do NOT edit the expected numbers to make this pass; a mismatch means the
+port changed physics."""
 import cmath, math
 import numpy as np
 import pytest

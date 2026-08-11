@@ -7,10 +7,26 @@ experiments layer consumes only `Solution`. Status: **M1–M4 complete, 101 test
 
 ## Run
 
-- Interpreter (NOT on PATH): `C:\Users\LiaoTianrui\anaconda3\envs\wavelab\python.exe`
-  (conda env `wavelab`; create with `conda env create -f environment.yml` + `pip install -e .`)
-- Tests: `& $py -m pytest -q -m "not slow"` (~9 s); add slow: `& $py -m pytest -q` (~14 s)
-- Examples: `& $py examples\fig6_side_by_side.py`, `& $py examples\illposedness_report.py`
+Setup once: `conda env create -f environment.yml && conda activate wavelab && pip install -e .`
+
+- Tests: `pytest -q -m "not slow"` (~9 s); with slow: `pytest -q` (~14 s)
+- Examples: `python examples/fig6_side_by_side.py`, `python examples/illposedness_report.py`
+- Figures: `python docs/tutorial/figures/make_figures.py`
+
+Platform note: on the author's Windows box `python`/`conda` are not on PATH — use the
+absolute interpreter path instead (see `docs/agents/gotchas.md`). On macOS/Linux with
+the env activated, the plain commands above work.
+
+## External references (NOT in this repo)
+
+The paper being reproduced and the reference implementations live one directory up in
+the author's FYP workspace and are **not** cloned with this repo: `../m.pdf` (the
+paper), `../Nonlinear_Wave_simulations/` (C++ reference), `../wave_equation/`
+(Deep Galerkin + FD notebooks), `../fig6_study/` (historical sandbox superseded by
+this repo). Citations to them in docs/tests are provenance notes — everything needed
+to run, test and understand wavelab is self-contained here. Do not try to read them
+if they are absent; do not re-derive results from them without reading
+`docs/agents/gotchas.md` first (two of them contain bugs).
 
 ## Hard rules
 

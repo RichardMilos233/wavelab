@@ -5,10 +5,16 @@ d = 1, 2, 3). Define an equation once as data, then solve it with interchangeabl
 compare them. Design: `docs/superpowers/specs/2026-07-13-wavelab-design.md`.
 
 ## Setup
-    conda env create -f environment.yml
-    conda activate wavelab
-    pip install -e .
-    pytest -m "not slow"
+
+```bash
+conda env create -f environment.yml     # creates env "wavelab" (macOS/Linux/Windows)
+conda activate wavelab
+pip install -e .
+pytest -m "not slow"                    # ~9 s, 95 tests; `pytest` adds 6 slow ones
+```
+
+Only hard constraint: **numpy `<2.4`** (numba 0.65 doesn't support 2.4, and it breaks
+matplotlib's compiled ABI on Windows) — already pinned in `environment.yml`.
 
 ## Use
 ```python

@@ -2,15 +2,27 @@
 
 ## Environment
 
-- `python`/`conda` are NOT on PATH. Interpreter:
-  `C:\Users\LiaoTianrui\anaconda3\envs\wavelab\python.exe`;
-  conda: `C:\Users\LiaoTianrui\anaconda3\Scripts\conda.exe`.
 - **numpy must stay <2.4**: numpy 2.4.x causes a NATIVE crash (0xc06d007f) inside
   matplotlib's compiled transforms on Windows, and numba 0.65.x doesn't support it.
   matplotlib pinned <3.11 for the same ABI reason. Working combo: numpy 2.3.5 +
   matplotlib 3.10.8. Both pinned in `environment.yml` — do not "upgrade to fix".
+  (Platform-independent: the numba constraint bites everywhere.)
+- Normal usage (any OS): `conda activate wavelab`, then `python` / `pytest` directly.
+
+### Windows box (the author's original machine)
+
+- `python`/`conda` are NOT on PATH. Use absolute paths:
+  `C:\Users\LiaoTianrui\anaconda3\envs\wavelab\python.exe`;
+  conda: `C:\Users\LiaoTianrui\anaconda3\Scripts\conda.exe`.
 - PowerShell 5.1: no `&&`; heredocs via Bash tool are safer for multi-line commit
   messages; regex in Bash heredocs gets mangled — use the Write tool for scripts.
+
+### macOS / Linux
+
+- Plain `python`, `pytest`, `conda` work once the env is activated; no absolute paths.
+- numba supports Apple Silicon (osx-arm64) via conda-forge — `environment.yml`
+  resolves as-is. If a solver is slow, check you are on the `numba` backend, not the
+  python reference backend.
 
 ## Semantics that look like bugs but aren't
 
