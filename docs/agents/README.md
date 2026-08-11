@@ -11,6 +11,10 @@ default, load detail only when the task needs it):
 - **Level 3** — source code, tests, and `docs/superpowers/` (spec + plans): the
   ground truth. Level-2 files cite exact paths so you can drop down when needed.
 
+`project-context.md` is the odd one out: it is not a summary of level-3 source but the
+FYP framing (paper, research question, deliverable) that a fresh clone has no other way
+to learn. Read it when you need the *why*, not the *how*.
+
 Rules for maintaining this layer:
 - Keep level 1 under ~50 lines; push detail down, never up.
 - A level-2 file summarizes; it must not contradict level 3. When code changes,

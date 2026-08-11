@@ -41,6 +41,7 @@ if they are absent; do not re-derive results from them without reading
 
 | When you need... | Read |
 |---|---|
+| Why this repo exists — the paper, the research question, the deliverable | `docs/agents/project-context.md` |
 | Solver APIs, params, meta keys, failure modes | `docs/agents/solvers.md` |
 | WaveEquation fields / the 11 library equations | `docs/agents/equations.md` |
 | compare / blowup_scan / mode_amplification / variance_profile | `docs/agents/experiments.md` |
