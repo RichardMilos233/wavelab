@@ -45,6 +45,11 @@ A written FYP report backed by reproducible figures. The repo is the evidence la
 is the full argument in six sections, and `docs/tutorial/` (Chinese) carries the
 derivations for the report's method chapter.
 
+One exception to "reproducible", and it matters when quoting these scripts: the
+ImplicitFD magnitudes in section 3 of `illposedness_report.py` are amplified round-off,
+not measurements. They differ between machines and their sign is not fixed — see
+`gotchas.md`. Everything else these scripts print is machine-independent.
+
 ## Conventions inherited from the FYP
 
 - Build clean, instrumentable Python rather than porting the C++ — but keep results
