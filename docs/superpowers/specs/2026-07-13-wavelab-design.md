@@ -192,7 +192,7 @@ the variable that actually causes it. **Branching MC needs none of this** — it
 marches a coupled state forward, so there is no mode to amplify. That contrast is the
 sharpened thesis of the Figure-6 study.
 
-**`BranchingMC(lam=0.25, n=10_000, q=None, seed=None)`**
+**`BranchingMC(lam=0.25, n=10_000, q=None, seed=None, N=21)`**
 — pointwise estimator of `u(z,t) = E[H]` from the paper's probabilistic
 representation. Key properties:
 
@@ -308,7 +308,7 @@ same physics, new home.
 4. **M4 — experiment polish:** ✅ done 2026-07-13. variance_profile, generalized
    mode_amplification, blowup_scan, 2-D compare guard, `illposedness_report.py`.
 
-**Status: M1–M4 complete, 99 tests green.** Remaining ideas, none started:
+**Status: M1–M4 complete, 102 tests green.** Remaining ideas, none started:
 implicit FD in d≥2, 2-D field visualisation, Deep Galerkin comparison
 (`../wave_equation/`).
 

@@ -11,8 +11,16 @@ from wavelab.solvers.mc import reference
 class BranchingMC:
     name = "branching_mc"
 
-    def __init__(self, lam=0.25, n=10_000, q=None, seed=None):
-        self.lam, self.n, self.q, self.seed = lam, n, q, seed
+    def __init__(self, lam=0.25, n=10_000, q=None, seed=None, N=21):
+        """CAUTION: `n` and `N` differ only in case and mean different things.
+        `n` = Monte Carlo samples per point (10_000). `N` = how many evaluation
+        points the d=1 default grid has (21), mirroring ExplicitFD's `N`. Mixing
+        them up does not raise — it silently gives a very noisy answer (n small)
+        or a very slow one (N large). Passing `points=` explicitly overrides `N`.
+        """
+        if int(N) < 2:
+            raise ValueError(f"N (number of default grid points) must be >= 2, got {N}")
+        self.lam, self.n, self.q, self.seed, self.N = lam, n, q, seed, int(N)
 
     def _offspring(self, eq):
         powers = np.array(sorted(eq.f.keys()), dtype=np.int64)
@@ -40,7 +48,7 @@ class BranchingMC:
             if eq.domain is None:
                 raise ValueError("points is required when eq.domain is None")
             (a, b), = eq.domain
-            points = np.linspace(a, b, 21)
+            points = np.linspace(a, b, self.N)
         points = np.asarray(points, dtype=np.complex128)
         if eq.dim == 1:
             points = np.atleast_1d(points)
@@ -63,7 +71,8 @@ class BranchingMC:
                           f"> 20% — t may be near the integrability window's edge; "
                           f"increase n or reduce t")
         return Solution(eq=eq, solver=self.name,
-                        params={"lam": self.lam, "n": self.n, "seed": self.seed},
+                        params={"lam": self.lam, "n": self.n, "seed": self.seed,
+                                "N": self.N},
                         times=times, points=points, u=u,
                         meta={"stderr": se, "n": self.n, "lam": self.lam,
                               "seed": self.seed})

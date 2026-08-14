@@ -3,7 +3,7 @@
 Python toolbox for nonlinear wave equations `u_tt − c²Δu = Σ aₖuᵏ` (complex `c`,
 complex data, d = 1,2,3). Equations are immutable data (`WaveEquation`), solvers are
 interchangeable classes sharing `solve(eq, times, points=None) -> Solution`, the
-experiments layer consumes only `Solution`. Status: **M1–M4 complete, 99 tests green.**
+experiments layer consumes only `Solution`. Status: **M1–M4 complete, 102 tests green.**
 
 ## Run
 

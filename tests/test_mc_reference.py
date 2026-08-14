@@ -43,7 +43,7 @@ def test_seed_reproducible():
 
 def test_default_points_from_domain_and_complex_points_ok():
     sol = BranchingMC(n=200, seed=0).solve(SINE_CI, times=[0.1])
-    assert len(sol.points) == 21                       # linspace over domain
+    assert len(sol.points) == 21                       # linspace over domain (N default)
     off = BranchingMC(n=200, seed=0).solve(SINE_CI, times=[0.1], points=[0.5 + 0.1j])
     assert np.isfinite(off.u).all()                    # off-axis evaluation works
 
@@ -62,3 +62,21 @@ def test_paper_scale_smoke():
     feasible without a compiled backend. Locks u(0.5, 0.5) from spec §6."""
     sol = BranchingMC(n=1_000_000, seed=1).solve(SINE_CI, [0.5], points=[0.5])
     assert sol.u[0, 0].real == pytest.approx(1.91, abs=0.02)
+
+
+def test_N_sets_the_default_grid_size():
+    """N mirrors ExplicitFD's N: how many points the d=1 default grid has."""
+    sol = BranchingMC(n=200, seed=0, N=9).solve(SINE_CI, times=[0.1])
+    assert len(sol.points) == 9
+    np.testing.assert_allclose(sol.points.real, np.linspace(0, 1, 9))
+    assert sol.params["N"] == 9
+
+
+def test_explicit_points_override_N():
+    sol = BranchingMC(n=200, seed=0, N=9).solve(SINE_CI, times=[0.1], points=[0.25, 0.75])
+    assert len(sol.points) == 2          # points wins; N is only the default builder
+
+
+def test_bad_N_rejected():
+    with pytest.raises(ValueError, match="N"):
+        BranchingMC(N=1)

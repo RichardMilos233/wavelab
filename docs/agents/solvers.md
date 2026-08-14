@@ -55,10 +55,13 @@ analogue: k_max=12 survives to t=0.7 with err ~0.15 vs MC; k_max=20 dies at 0.64
 k_max=30 at 0.438 (more modes kept ⇒ earlier death — the regularization IS the
 stability). d=1 only.
 
-## BranchingMC(lam=0.25, n=10_000, q=None, seed=None) — `mc/`
+## BranchingMC(lam=0.25, n=10_000, q=None, seed=None, N=21) — `mc/`
 
 Pointwise unbiased estimator of u(z,t)=E[H] from the paper's branching-tree
-representation. d=1,2,3; `points` may be arbitrary complex
+representation. **`n` = samples per point; `N` = size of the d=1 default grid**
+(`np.linspace(*domain, N)`, mirroring ExplicitFD's `N`). They differ only in case and
+mixing them up does not raise — it just gives a very noisy or a very slow answer.
+Explicit `points=` overrides `N` entirely. d=1,2,3; `points` may be arbitrary complex
 (off-axis works). d≥2: `points` shape `(P, dim)` required, `eq.grad_phi` required
 (leaf carries y·∇φ(z+y)); d=2 mark is a disc `R=s√(1−(1−p)²)`, d=3 the sphere
 `α=arccos(1−2p)`. `q` maps power→probability (default uniform on `eq.f` keys);

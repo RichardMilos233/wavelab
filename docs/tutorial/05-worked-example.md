@@ -111,7 +111,7 @@ print("exact:", my_eq.exact(3.0, 0.5))
 > 价格是偏差；蒙特卡洛靠"逐点期望、不推进任何状态"绕开了整个问题，价格是方差。
 > 理解每种方法**为什么**付出**哪种**代价——这比任何单一方法本身都更重要。
 
-全部数字可复现：`pytest`（99 个测试）锁定了本教程引用的每一个数值；
+全部数字可复现：`pytest`（102 个测试）锁定了本教程引用的每一个数值；
 `examples/illposedness_report.py` 一键重演全部实验；
 `docs/tutorial/figures/make_figures.py` 重新生成全部插图。
 

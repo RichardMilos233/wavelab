@@ -10,7 +10,7 @@ compare them. Design: `docs/superpowers/specs/2026-07-13-wavelab-design.md`.
 conda env create -f environment.yml     # creates env "wavelab" (macOS/Linux/Windows)
 conda activate wavelab
 pip install -e .
-pytest -m "not slow"                    # ~7 s, 93 tests; `pytest` adds 6 slow ones
+pytest -m "not slow"                    # ~7 s, 96 tests; `pytest` adds 6 slow ones
 ```
 
 Only hard constraint: **numpy `<2.4`** (2.4.x breaks matplotlib's compiled ABI on
