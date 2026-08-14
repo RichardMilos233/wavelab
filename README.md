@@ -10,11 +10,11 @@ compare them. Design: `docs/superpowers/specs/2026-07-13-wavelab-design.md`.
 conda env create -f environment.yml     # creates env "wavelab" (macOS/Linux/Windows)
 conda activate wavelab
 pip install -e .
-pytest -m "not slow"                    # ~9 s, 95 tests; `pytest` adds 6 slow ones
+pytest -m "not slow"                    # ~7 s, 93 tests; `pytest` adds 6 slow ones
 ```
 
-Only hard constraint: **numpy `<2.4`** (numba 0.65 doesn't support 2.4, and it breaks
-matplotlib's compiled ABI on Windows) — already pinned in `environment.yml`.
+Only hard constraint: **numpy `<2.4`** (2.4.x breaks matplotlib's compiled ABI on
+Windows) — already pinned in `environment.yml`.
 
 ## Use
 ```python
@@ -33,7 +33,7 @@ compare(fd, mc).plot("fig6.png")             # FD explodes; MC stays smooth
   - `ImplicitFD` (d=1) — θ-scheme + Newton. **Does not cure ill-posedness** (see below).
   - `LinearlyImplicitFD` (d=1) — the paper's named method; blows up on a fixed grid.
   - `RegularizedFD` (d=1) — leapfrog + spectral cut-off. **The one that actually works.**
-  - `BranchingMC` (d=1,2,3) — pointwise `E[H]`; `backend="python"` or `"numba"` (numba is d=1).
+  - `BranchingMC` (d=1,2,3) — pointwise `E[H]`; pure-Python readable recursion.
 - **Equations**: `wavelab.library` — all 11 of the paper's simulations, 8 with closed forms.
 - **Experiments**: `compare` · `blowup_scan` · `mode_amplification` · `variance_profile`
 
@@ -88,7 +88,7 @@ FD dies of ill-posedness; MC dies of variance. See `examples/illposedness_report
 - Blow-up is **data**, not an error: solvers record `meta["blowup_time"]` and return NaN after it.
 - MC always reports `meta["stderr"]`; pass `seed=` for reproducibility.
 - `numpy<2.4` and `matplotlib<3.11` are pinned — numpy 2.4.x breaks matplotlib's compiled
-  ABI on Windows and is unsupported by numba 0.65.x.
+  ABI on Windows.
 - The reference C++ `Simulation_07` (d=2) sets `a₃ = −1` though its README says `f = −u + u³`
   (`a₃ = +1`). wavelab derives coefficients from `eq.f`, so d≥2 is validated against the closed
   forms, not against that output.

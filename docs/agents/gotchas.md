@@ -3,10 +3,9 @@
 ## Environment
 
 - **numpy must stay <2.4**: numpy 2.4.x causes a NATIVE crash (0xc06d007f) inside
-  matplotlib's compiled transforms on Windows, and numba 0.65.x doesn't support it.
-  matplotlib pinned <3.11 for the same ABI reason. Working combo: numpy 2.3.5 +
-  matplotlib 3.10.8. Both pinned in `environment.yml` — do not "upgrade to fix".
-  (Platform-independent: the numba constraint bites everywhere.)
+  matplotlib's compiled transforms on Windows. matplotlib pinned <3.11 for the same
+  ABI reason. Working combo: numpy 2.3.5 + matplotlib 3.10.8. Both pinned in
+  `environment.yml` — do not "upgrade to fix".
 - Normal usage (any OS): `conda activate wavelab`, then `python` / `pytest` directly.
 
 ### Windows box (the author's original machine)
@@ -20,18 +19,29 @@
 ### macOS / Linux
 
 - Plain `python`, `pytest`, `conda` work once the env is activated; no absolute paths.
-- numba supports Apple Silicon (osx-arm64) via conda-forge — `environment.yml`
-  resolves as-is. If a solver is slow, check you are on the `numba` backend, not the
-  python reference backend.
 - **Verified on Apple Silicon 2026-08-11** (macOS, osx-arm64): `conda env create -f
   environment.yml` resolves unchanged to python 3.12.13 / numpy 2.3.5 /
-  matplotlib 3.10.9 / numba 0.66.0 (numba 0.66 is fine — the docs elsewhere say
-  0.65.x only because that is what the Windows box had). `pytest -q` → 101 passed
-  in ~12 s; every number in the regression lock below reproduced exactly.
+  matplotlib 3.10.9. `pytest -q` → all green in ~12 s; every number in the
+  regression lock below reproduced exactly. (That run predates the numba removal,
+  when the suite had 101 tests.)
 - Regenerating `docs/tutorial/figures/` on macOS rewrites all five PNGs with
   different bytes — including `branching_tree.png`, which is a pure schematic with no
   computation in it. That is font/matplotlib-version rendering, not a numerical
   change. Don't commit the churn unless the plotted content actually changed.
+
+## Removed on purpose — do not reintroduce
+
+- **The numba backend (`mc/fast.py`) and BranchingMC's `backend` / `workers`
+  parameters were deleted 2026-08-14** (owner's decision). wavelab demonstrates the
+  algorithm; it is not a production solver, and pure Python is fast enough for every
+  figure the FYP needs — ~3 s for 1e6 samples at one point, ~4.5 min for 1e6 samples
+  over 101 points. `workers` had never been wired to anything: accepted, stored on
+  `self`, never read. Cost of the removal: `test_backends_agree.py`, which
+  cross-validated the recursive and iterative-stack implementations against each
+  other; correctness now rests on the closed-form golden tests alone. If paper-scale
+  2-D runs ever need it, recover it from git history rather than rewriting it.
+- Consequence: `numpy<2.4` is still pinned, but now **only** for the matplotlib ABI
+  crash on Windows — the numba constraint is gone. Don't "unpin because numba left".
 
 ## Semantics that look like bugs but aren't
 

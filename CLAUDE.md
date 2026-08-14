@@ -3,7 +3,7 @@
 Python toolbox for nonlinear wave equations `u_tt − c²Δu = Σ aₖuᵏ` (complex `c`,
 complex data, d = 1,2,3). Equations are immutable data (`WaveEquation`), solvers are
 interchangeable classes sharing `solve(eq, times, points=None) -> Solution`, the
-experiments layer consumes only `Solution`. Status: **M1–M4 complete, 101 tests green.**
+experiments layer consumes only `Solution`. Status: **M1–M4 complete, 99 tests green.**
 
 ## Run
 
@@ -33,8 +33,8 @@ if they are absent; do not re-derive results from them without reading
 - Regression numbers (spec §6 / `tests/test_fig6_regression.py`) are LOCKED —
   never edit an expected number to make a test pass; investigate instead.
 - Blow-up is DATA, not an exception: solvers set `meta["blowup_time"]`, NaN after, warn.
-- Deps stay minimal: numpy `<2.4` (pinned — see gotchas), matplotlib `<3.11`, numba,
-  pytest. No scipy, no pandas.
+- Deps stay minimal: numpy `<2.4` (pinned — see gotchas), matplotlib `<3.11`, pytest.
+  No scipy, no pandas, no numba — this is a demonstration repo, clarity over speed.
 - All solution arrays complex128; MC always reports `meta["stderr"]`; seeds explicit.
 
 ## Deeper docs (level 2 — read on demand, don't preload)

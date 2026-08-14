@@ -12,7 +12,6 @@ arrays of shape `(T, P)`. Requested `times` must be integer multiples of `dt`
 | The honest FD baseline (blows up on ill-posed problems, loudly) | `ExplicitFD` |
 | A *stable* FD curve on the ill-posed problem | `RegularizedFD` (the only FD that works there) |
 | The unbiased pointwise reference / complex evaluation points | `BranchingMC` |
-| Paper-scale MC (1e6+ samples, d=1) | `BranchingMC(backend="numba")` (needs njit φ/ψ) |
 | To demonstrate that implicit does NOT fix ill-posedness | `ImplicitFD`, `LinearlyImplicitFD` |
 
 ## ExplicitFD(N=101, dt=0.002) — `fd_explicit.py`
@@ -56,19 +55,16 @@ analogue: k_max=12 survives to t=0.7 with err ~0.15 vs MC; k_max=20 dies at 0.64
 k_max=30 at 0.438 (more modes kept ⇒ earlier death — the regularization IS the
 stability). d=1 only.
 
-## BranchingMC(lam=0.25, n=10_000, q=None, backend="python", seed=None, workers=1) — `mc/`
+## BranchingMC(lam=0.25, n=10_000, q=None, seed=None) — `mc/`
 
 Pointwise unbiased estimator of u(z,t)=E[H] from the paper's branching-tree
-representation. d=1,2,3 (python backend); `points` may be arbitrary complex
+representation. d=1,2,3; `points` may be arbitrary complex
 (off-axis works). d≥2: `points` shape `(P, dim)` required, `eq.grad_phi` required
 (leaf carries y·∇φ(z+y)); d=2 mark is a disc `R=s√(1−(1−p)²)`, d=3 the sphere
 `α=arccos(1−2p)`. `q` maps power→probability (default uniform on `eq.f` keys);
 changes variance only — tested. `meta`: `stderr` (T,P), `n`, `lam`, `seed`,
-`backend`; warns when relative stderr >20%.
-- `backend="python"` — `mc/reference.py`, readable recursion, ground truth.
-- `backend="numba"` — `mc/fast.py`, d=1 only, iterative explicit stack (H is a
-  product of per-node weights), `prange` over points, per-point seeding
-  (deterministic across thread counts). Requires φ/ψ to be `numba.njit`-compiled,
-  else ValueError. ~1e6 samples in ~4 s.
+warns when relative stderr >20%. Single implementation: `mc/reference.py`, a readable
+recursion — deliberately not optimised (see gotchas: the numba backend was removed).
+Cost is ~3 s for 1e6 samples at one point, ~4.5 min for 1e6 samples over 101 points.
 Failure mode is VARIANCE, not instability: stderr explodes with t (rel stderr >100%
 by t≈1.2 on SINE_CI_1D). Use `variance_profile` to locate the wall.

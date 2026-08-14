@@ -50,7 +50,7 @@ pytest -m "not slow"                    # ~9 秒，应全绿
 ```
 
 注意 `environment.yml` 把 numpy 钉在 `<2.4`——numpy 2.4.x 在 Windows 上会让
-matplotlib 原生崩溃，且 numba 0.65 不支持它。不要"顺手升级"。
+matplotlib 原生崩溃。不要"顺手升级"。
 
 ## 0.4 仓库地图
 
@@ -67,7 +67,6 @@ wavelab/
 │   │   ├── fd_regularized.py      # 谱截断正则化——真正有效的那个（03 章）
 │   │   └── mc/
 │   │       ├── reference.py       # 分支 MC 纯 Python 参考实现（04 章）
-│   │       └── fast.py            # numba 加速后端（04 章）
 │   └── experiments/       # compare / blowup_scan / mode_amplification / variance_profile
 ├── examples/              # fig6_side_by_side.py, illposedness_report.py
 ├── tests/                 # 101 个测试；闭式解 = golden tests

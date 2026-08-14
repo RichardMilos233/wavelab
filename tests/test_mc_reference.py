@@ -47,12 +47,18 @@ def test_default_points_from_domain_and_complex_points_ok():
     off = BranchingMC(n=200, seed=0).solve(SINE_CI, times=[0.1], points=[0.5 + 0.1j])
     assert np.isfinite(off.u).all()                    # off-axis evaluation works
 
-def test_bad_q_and_backend_rejected():
+def test_bad_q_rejected():
     with pytest.raises(ValueError, match="q"):
         BranchingMC(q={1: 1.0}).solve(SINE_CI, times=[0.1], points=[0.5])   # missing power 3
-    with pytest.raises(ValueError, match="backend"):
-        BranchingMC(backend="cpp").solve(SINE_CI, times=[0.1], points=[0.5])
 
 def test_points_required_without_domain():
     with pytest.raises(ValueError, match="points"):
         BranchingMC(n=10).solve(SIM01, times=[0.1])    # SIM01 has no domain
+
+
+@pytest.mark.slow
+def test_paper_scale_smoke():
+    """1e6 samples at one point (~3 s in pure python) — the paper-scale run is
+    feasible without a compiled backend. Locks u(0.5, 0.5) from spec §6."""
+    sol = BranchingMC(n=1_000_000, seed=1).solve(SINE_CI, [0.5], points=[0.5])
+    assert sol.u[0, 0].real == pytest.approx(1.91, abs=0.02)

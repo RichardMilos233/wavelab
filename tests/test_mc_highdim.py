@@ -58,8 +58,3 @@ def test_grad_phi_required_for_d2():
 def test_points_required_for_d2():
     with pytest.raises(ValueError, match="points"):
         BranchingMC(n=10).solve(SIM05, [0.5])
-
-def test_numba_backend_rejected_for_d2():
-    z = np.array([[4 + 0j, 4 + 0j]])
-    with pytest.raises(NotImplementedError, match="dim"):
-        BranchingMC(n=10, backend="numba").solve(SIM05, [0.5], points=z)

@@ -26,8 +26,7 @@ wave equations with complex polynomial nonlinearities* (2026) — `../m.pdf`.
   This covers all 14 paper simulations (tanh solitons d=1..3, sine data d=1..2,
   `f=u²` closed form, etc.).
 - Solvers: explicit FD (d=1 first, then d=2), implicit θ-scheme FD (d=1),
-  branching MC (d=1 first, then d=2,3) with two backends (pure Python reference,
-  numba fast path).
+  branching MC (d=1 first, then d=2,3), pure-Python reference implementation.
 - Experiment utilities: method comparison, error vs exact solution, blow-up scans,
   linear mode-amplification analysis, MC variance profiling, house plotting style.
 
@@ -46,7 +45,7 @@ Approach: **light protocol style** — "equations are data, solvers are classes,
 ```python
 eq = WaveEquation(dim=1, c=1j, f={1: -1, 3: 1}, phi=..., psi=..., domain=((0, 1),))
 sol_fd = ExplicitFD(N=101, dt=0.002).solve(eq, times=[0.1, 0.2, 0.3, 0.4])
-sol_mc = BranchingMC(n=40_000, lam=0.25, backend="numba").solve(eq, times=[...], points=xs)
+sol_mc = BranchingMC(n=40_000, lam=0.25).solve(eq, times=[...], points=xs)
 compare(sol_fd, sol_mc).plot("fig6.png")
 ```
 
@@ -58,7 +57,7 @@ internals. Adding a new method (e.g. a spectral solver later) = adding one class
 
 ```
 wavelab/
-├── environment.yml          # conda env "wavelab": python=3.12, numpy, matplotlib, numba, pytest
+├── environment.yml          # conda env "wavelab": python=3.12, numpy, matplotlib, pytest
 ├── pyproject.toml           # pip install -e .
 ├── README.md
 ├── wavelab/
@@ -71,9 +70,8 @@ wavelab/
 │   │   ├── fd_explicit.py   # leapfrog (d=1, then d=2 five-point)
 │   │   ├── fd_implicit.py   # θ-scheme + Newton (paper Fig 7 counterpart)
 │   │   └── mc/
-│   │       ├── __init__.py  # BranchingMC — dispatches on backend
-│   │       ├── reference.py # pure-Python recursion (readable ground truth)
-│   │       └── fast.py      # numba njit + prange (paper-scale runs)
+│   │       ├── __init__.py  # BranchingMC — the public solver
+│   │       └── reference.py # pure-Python recursion (readable ground truth)
 │   └── experiments/
 │       ├── compare.py       # comparison tables / side-by-side plots
 │       ├── blowup.py        # blowup_scan, mode_amplification
@@ -123,7 +121,7 @@ class Solution:
     times: np.ndarray           # (T,)
     points: np.ndarray          # (P,) complex or (P, dim) complex
     u: np.ndarray               # (T, P) complex128; NaN at/after FD blow-up
-    meta: dict                  # MC: stderr (T,P), n, lam, seed, backend
+    meta: dict                  # MC: stderr (T,P), n, lam, seed
                                 # FD: blowup_time, dt, N
 ```
 
@@ -194,7 +192,7 @@ the variable that actually causes it. **Branching MC needs none of this** — it
 marches a coupled state forward, so there is no mode to amplify. That contrast is the
 sharpened thesis of the Figure-6 study.
 
-**`BranchingMC(lam=0.25, n=10_000, q=None, backend="python", seed=None, workers=1)`**
+**`BranchingMC(lam=0.25, n=10_000, q=None, seed=None)`**
 — pointwise estimator of `u(z,t) = E[H]` from the paper's probabilistic
 representation. Key properties:
 
@@ -213,12 +211,19 @@ representation. Key properties:
 - Backends:
   - `reference.py` — pure-Python recursion (current `fig6_study` code, cleaned up).
     Ground truth for correctness; fine for ~1e4–1e5 samples.
-  - `fast.py` — numba `@njit`: recursion converted to an explicit work stack,
-    `prange` over samples, per-thread RNG seeded from the user seed, complex128
-    throughout. Target: paper-scale runs (101 points × 1e6–1e7 samples) on a laptop.
-  - Both expose identical semantics; cross-validated by tests. If numba is missing,
-    `backend="numba"` raises a clear error naming `conda install numba`;
-    the reference backend never depends on it.
+  - This is the ONLY implementation (see the 2026-08-14 note at the end of this
+    section). Cost measured on the author's laptop: ~3 s for 1e6 samples at one
+    point, ~4.5 min for 1e6 samples over 101 points — acceptable for a repo whose
+    purpose is demonstrating the algorithm.
+
+  **Removed 2026-08-14 — the numba backend (`mc/fast.py`) and the `backend` /
+  `workers` parameters.** Rationale (owner's call): wavelab exists to demonstrate the
+  algorithm, not to be a production solver, and pure Python is fast enough for every
+  figure the FYP needs. `workers` had never been wired to anything — it was accepted,
+  stored, and never read. What was lost: `test_backends_agree.py`, which
+  cross-validated the recursive and iterative-stack implementations against each
+  other. Correctness now rests on the closed-form golden tests alone. Recoverable
+  from git history if paper-scale 2-D runs are ever needed.
 
 ### 3.4 Equation library (library.py)
 
@@ -261,14 +266,12 @@ Consumes `Solution` objects only:
 - **Fail fast at construction**: invalid equation definitions (negative powers,
   FD without `domain`, φ rejecting complex input) raise `ValueError` at
   `WaveEquation(...)` or `solve(...)` entry with actionable messages.
-- Missing numba → clear ImportError with install hint; reference backend unaffected.
 
 ## 6. Testing (pytest)
 
 | Test file | Verifies |
 |---|---|
 | `test_closed_forms.py` | MC vs closed forms: SIM01 `6/(z+√2t)²`, SOLITON_1D (2D/3D marked `slow`) — error < 3×stderr |
-| `test_backends_agree.py` | python vs numba means agree within combined stderr |
 | `test_fd_wellposed.py` | c=1 control: refinement **reduces** error (FD core is correct) |
 | `test_illposed_signature.py` | c=i: refinement makes blow-up **earlier** — regression-locks t≈0.44 (N=51) / 0.23 (N=101) / 0.13 (N=201) at dt=0.002 |
 | `test_fig6_regression.py` | library-based fig6 reproduces the verified numbers below |
@@ -282,8 +285,8 @@ same physics, new home.
 
 ## 7. Environment & migration
 
-- `environment.yml`: env name `wavelab`; python=3.12, numpy, matplotlib, numba,
-  pytest; then `pip install -e .`.
+- `environment.yml`: env name `wavelab`; python=3.12, numpy, matplotlib, pytest;
+  then `pip install -e .`.
   (Note: base Anaconda is at `C:\Users\LiaoTianrui\anaconda3\`; `python` is not on PATH.)
 - `wavelab/` is its own git repo (`git init` inside; `fyp/` root stays non-git).
 - `../fig6_study/` is kept untouched as the historical sandbox; once
@@ -305,9 +308,9 @@ same physics, new home.
 4. **M4 — experiment polish:** ✅ done 2026-07-13. variance_profile, generalized
    mode_amplification, blowup_scan, 2-D compare guard, `illposedness_report.py`.
 
-**Status: M1–M4 complete, 101 tests green.** Remaining ideas, none started:
-numba backend for d≥2 (needed only for paper-scale 2-D runs), implicit FD in d≥2,
-2-D field visualisation, Deep Galerkin comparison (`../wave_equation/`).
+**Status: M1–M4 complete, 99 tests green.** Remaining ideas, none started:
+implicit FD in d≥2, 2-D field visualisation, Deep Galerkin comparison
+(`../wave_equation/`).
 
 Each milestone ends runnable with green tests. Implementation is planned for a
 separate session (Opus) working from this spec plus a written implementation plan.

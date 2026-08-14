@@ -1,4 +1,4 @@
-"""BranchingMC: pointwise estimator of u(z,t)=E[H]; dispatches on backend."""
+"""BranchingMC: pointwise estimator of u(z,t)=E[H] from the branching representation."""
 import math
 import warnings
 import numpy as np
@@ -7,18 +7,12 @@ from wavelab.equation import WaveEquation
 from wavelab.solution import Solution
 from wavelab.solvers.mc import reference
 
-_BACKENDS = ("python", "numba")
-
 
 class BranchingMC:
     name = "branching_mc"
 
-    def __init__(self, lam=0.25, n=10_000, q=None, backend="python",
-                 seed=None, workers=1):
-        if backend not in _BACKENDS:
-            raise ValueError(f"backend must be one of {_BACKENDS}, got {backend!r}")
-        self.lam, self.n, self.q = lam, n, q
-        self.backend, self.seed, self.workers = backend, seed, workers
+    def __init__(self, lam=0.25, n=10_000, q=None, seed=None):
+        self.lam, self.n, self.q, self.seed = lam, n, q, seed
 
     def _offspring(self, eq):
         powers = np.array(sorted(eq.f.keys()), dtype=np.int64)
@@ -55,36 +49,13 @@ class BranchingMC:
                              f"got {points.shape}")
         powers, coeffs, probs = self._offspring(eq)
 
-        if self.backend == "numba":
-            if eq.dim > 1:
-                raise NotImplementedError(
-                    f"numba backend is dim=1 only; use backend='python' for dim={eq.dim}")
-            try:
-                from numba.core.dispatcher import Dispatcher
-                from wavelab.solvers.mc import fast
-            except ImportError as e:
-                raise ImportError("numba backend needs numba: conda install numba") from e
-            for fname, fn in (("phi", eq.phi), ("psi", eq.psi)):
-                if not isinstance(fn, Dispatcher):
-                    raise ValueError(
-                        f"numba backend requires eq.{fname} to be numba.njit-compiled, "
-                        f"e.g. {fname}=numba.njit(lambda z: cmath.sin(math.pi*z)); "
-                        f"or use backend='python'")
-            seed0 = self.seed if self.seed is not None else np.random.SeedSequence().entropy % (2**31)
-            u = np.empty((len(times), len(points)), dtype=np.complex128)
-            se = np.empty((len(times), len(points)), dtype=float)
-            for i, t in enumerate(times):
-                u[i], se[i] = fast.estimate_grid(
-                    points, float(t), self.n, float(self.lam), complex(eq.c),
-                    powers, coeffs, probs, int(seed0) + 100_003 * i, eq.phi, eq.psi)
-        else:
-            rng = np.random.default_rng(self.seed)
-            u = np.empty((len(times), len(points)), dtype=np.complex128)
-            se = np.empty((len(times), len(points)), dtype=float)
-            for i, t in enumerate(times):
-                for j, z in enumerate(points):
-                    u[i, j], se[i, j] = reference.estimate(
-                        eq, z, t, self.n, self.lam, powers, coeffs, probs, rng)
+        rng = np.random.default_rng(self.seed)
+        u = np.empty((len(times), len(points)), dtype=np.complex128)
+        se = np.empty((len(times), len(points)), dtype=float)
+        for i, t in enumerate(times):
+            for j, z in enumerate(points):
+                u[i, j], se[i, j] = reference.estimate(
+                    eq, z, t, self.n, self.lam, powers, coeffs, probs, rng)
 
         rel = se / np.maximum(np.abs(u), 1e-300)
         if np.any(rel > 0.2):
@@ -92,8 +63,7 @@ class BranchingMC:
                           f"> 20% — t may be near the integrability window's edge; "
                           f"increase n or reduce t")
         return Solution(eq=eq, solver=self.name,
-                        params={"lam": self.lam, "n": self.n, "backend": self.backend,
-                                "seed": self.seed},
+                        params={"lam": self.lam, "n": self.n, "seed": self.seed},
                         times=times, points=points, u=u,
                         meta={"stderr": se, "n": self.n, "lam": self.lam,
-                              "seed": self.seed, "backend": self.backend})
+                              "seed": self.seed})

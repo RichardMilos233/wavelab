@@ -79,7 +79,7 @@ sol = ExplicitFD(N=101, dt=0.001).solve(well, times=[0.5])
 | 不适定，要演示"隐式救不了" | `ImplicitFD` / `LinearlyImplicitFD` | 它们就是反例 |
 | 复数评估点 $z \in \mathbb{C}$ | `BranchingMC` | 唯一支持 |
 | $d = 2, 3$ | `BranchingMC`（+`grad_phi`）；FD 仅 d=2 显式 | 见第 4 章 4.10 |
-| 论文规模（$10^6$+ 样本） | `BranchingMC(backend="numba")` | $\varphi,\psi$ 需 njit 编译 |
+| 论文规模（$10^6$+ 样本） | `BranchingMC(n=1_000_000)` | 纯 Python，单点约 3 秒 |
 | 定位 MC 的时间极限 | `variance_profile` | 相对标准误 >100% 即到墙 |
 | 定位 FD 的爆炸规律 | `blowup_scan` + `mode_amplification` | 第 2 章的两件仪器 |
 
@@ -111,7 +111,7 @@ print("exact:", my_eq.exact(3.0, 0.5))
 > 价格是偏差；蒙特卡洛靠"逐点期望、不推进任何状态"绕开了整个问题，价格是方差。
 > 理解每种方法**为什么**付出**哪种**代价——这比任何单一方法本身都更重要。
 
-全部数字可复现：`pytest`（101 个测试）锁定了本教程引用的每一个数值；
+全部数字可复现：`pytest`（99 个测试）锁定了本教程引用的每一个数值；
 `examples/illposedness_report.py` 一键重演全部实验；
 `docs/tutorial/figures/make_figures.py` 重新生成全部插图。
 
