@@ -90,6 +90,6 @@ FD dies of ill-posedness; MC dies of variance. See `examples/illposedness_report
 - MC always reports `meta["stderr"]`; pass `seed=` for reproducibility.
 - `numpy<2.4` and `matplotlib<3.11` are pinned — numpy 2.4.x breaks matplotlib's compiled
   ABI on Windows.
-- The reference C++ `Simulation_07` (d=2) sets `a₃ = −1` though its README says `f = −u + u³`
-  (`a₃ = +1`). wavelab derives coefficients from `eq.f`, so d≥2 is validated against the closed
-  forms, not against that output.
+- The reference C++ `Simulation_07` (d=2) sets `a₃ = −1` while its README says `f = −u + u³`.
+  The **code** is the correct one: `a₃ = −1` is the paper's §7.3, and that run produced Figure 8a.
+  wavelab's `SINE_DEFOCUS_CI_2D` reproduces its 101×101 output field to max 0.0135 / mean 0.0009.

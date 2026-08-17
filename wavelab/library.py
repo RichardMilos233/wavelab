@@ -109,6 +109,13 @@ SINE_C1_2D = WaveEquation(
     domain=((0.0, 1.0), (0.0, 1.0)), name="SINE_C1_2D")
 
 # --------------------------------------- DEFOCUSING sine data: paper §7.1 and §7.3
+# PROVENANCE: §7.3 states its equation and domain but NOT its initial data. phi/psi
+# below are taken from §7.1, which gives them explicitly for the same d=2 sine setup,
+# and are CONFIRMED by the authors' own code: Nonlinear_Wave_simulations/Simulation_07
+# uses phi = sin(pi z1) sin(pi z2), psi = -phi, c = i, t = 0.5, lambda = 0.25 on a
+# 101x101 grid over [0,1]^2 — i.e. it is the run behind Figure 8a. Our RegularizedFD
+# reproduces its output field to max 0.0135 / mean 0.0009 (see gotchas.md).
+#
 # The paper's §7.1 (7.1) and §7.3 (7.3) carry the cubic with the OPPOSITE sign to
 # the soliton/§7.2 family above:
 #   §7.1  u_tt - Lap u + u + u^3 = 0  ->  c = 1,  f = -u - u^3

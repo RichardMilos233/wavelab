@@ -76,14 +76,34 @@
 
 ## Reference-code bugs (do NOT validate against these)
 
-1. `../Nonlinear_Wave_simulations/Simulation_07` (d=2, c=i, sine): sets `aJ = -1`
-   for BOTH J=1 and J=3, but its own README says f = −u + u³ (a₃ = +1). wavelab
-   derives coefficients from `eq.f`, so validate d≥2 against closed forms
-   (SIM05/SIM08/solitons), never against Sim_07 output.
+1. ~~`Simulation_07` sets `aJ = -1` for both J=1 and J=3, contradicting its
+   README~~ — **CORRECTED 2026-08-17. The code is right; the README is wrong.**
+   `aJ = -1` for both powers means f = −u − u³, which is the paper's **§7.3**
+   (defocusing elliptic); the README describes §7.2's f = −u + u³. Everything else
+   in the code matches Figure 8 exactly: c = i, t = 0.5, 101×101 grid on [0,1]²,
+   λ = 0.25, φ = sin(πz₁)sin(πz₂), ψ = −φ. So Simulation_07 **is the run that
+   produced Figure 8a**, and its output IS a valid cross-check — see the
+   verification note below. The earlier entry here cost us a free validation set;
+   do not re-add it.
 2. `../wave_equation/finite_differences_wave_1D.ipynb` ("implicit" notebook):
    `theta = 0.0005` despite the comment claiming Crank–Nicolson θ=0.5, AND its
    spatial-operator sign solves the well-posed problem, not the elliptic one. Its
    apparent stability is an artifact. Unusable as a reference.
+
+## Verified against the authors' own §7.3 run (2026-08-17)
+
+`Simulation_07/results/monte_carlo_real.csv` is the authors' 101×101 Monte Carlo
+field for §7.3 at t=0.5 (external to this repo — see CLAUDE.md; absent on a fresh
+clone). Compared against `RegularizedFD(N=101, dt=0.002, k_max=6)` on
+`SINE_DEFOCUS_CI_2D`, over all 10 201 points:
+
+    max |difference| = 0.0135      mean = 0.0009      at the centre = 0.0055
+
+which sits inside the authors' own MC noise (their |Im u| reaches 0.0056 while the
+true imaginary part is 0). Sample points, authors' MC vs our RegularizedFD:
+(0.5,0.5) 2.74616 / 2.75166 · (0.25,0.25) 1.70502 / 1.70387 · (0.5,0.25) 2.35969 /
+2.36020 · (0.1,0.5) 1.21042 / 1.21008. This is a one-time cross-check recorded here,
+NOT a test — the CSV is not in this repo and a test would fail on any other machine.
 
 ## Regression lock (never edit expected numbers)
 
