@@ -10,7 +10,7 @@ experiments layer consumes only `Solution`. Status: **M1–M4 complete, 113 test
 Setup once: `conda env create -f environment.yml && conda activate wavelab && pip install -e .`
 
 - Tests: `pytest -q -m "not slow"` (~9 s); with slow: `pytest -q` (~14 s)
-- Examples: `python examples/fig6_side_by_side.py`, `python examples/illposedness_report.py`
+- Examples: `python examples/fig6.py` (d=1, Fig 6), `python examples/fig8.py` (d=2, Fig 8)
 - Figures: `python docs/tutorial/figures/make_figures.py`
 
 Platform note: on the author's Windows box `python`/`conda` are not on PATH — use the

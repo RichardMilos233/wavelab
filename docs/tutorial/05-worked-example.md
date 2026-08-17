@@ -21,7 +21,7 @@ mc  = BranchingMC(lam=0.25, n=40_000, seed=0).solve(eq, times)
 print(compare(fd, reg, mc).table(probe_points=[0.1, 0.3, 0.5, 0.7, 0.9]))
 ```
 
-（一键版本：`examples/illposedness_report.py` 跑完整个六幕剧并出图。）
+（一键版本：`examples/fig6.py` 二十行画完这张对比图；d=2 的对应物是 `examples/fig8.py`。）
 
 ## 5.2 结果：中心点 $u(0.5, t)$ 全对照
 
@@ -111,8 +111,8 @@ print("exact:", my_eq.exact(3.0, 0.5))
 > 价格是偏差；蒙特卡洛靠"逐点期望、不推进任何状态"绕开了整个问题，价格是方差。
 > 理解每种方法**为什么**付出**哪种**代价——这比任何单一方法本身都更重要。
 
-全部数字可复现：`pytest`（102 个测试）锁定了本教程引用的每一个数值；
-`examples/illposedness_report.py` 一键重演全部实验；
+全部数字可复现：`pytest`（113 个测试）锁定了本教程引用的每一个数值；
+`examples/fig6.py`、`examples/fig8.py` 分别重演 d=1 与 d=2 的对比实验；
 `docs/tutorial/figures/make_figures.py` 重新生成全部插图。
 
 [← 返回总览](00-overview.md)

@@ -77,7 +77,8 @@ wavelab/
 │       ├── blowup.py        # blowup_scan, mode_amplification
 │       └── plotting.py      # house style
 ├── examples/
-│   └── fig6_side_by_side.py # today's figure via the library (≈15 lines)
+│   ├── fig6.py              # paper Fig 6 (§7.2, d=1) via the library (≈15 lines)
+│   └── fig8.py              # paper Fig 8 (§7.3, d=2), surfaces (≈20 lines)
 ├── tests/                   # pytest, see §6
 └── docs/superpowers/specs/  # this document
 ```

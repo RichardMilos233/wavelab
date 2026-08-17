@@ -65,12 +65,13 @@ blow-up straight back (k_max=12 survives to 0.7; 20 → dies at 0.64; 30 → die
 
 Branching MC needs no regularization at all. It has its own limit, though — **variance**, not
 instability: by t≈1.2 its relative standard error exceeds 100% and the estimator is pure noise.
-FD dies of ill-posedness; MC dies of variance. See `examples/illposedness_report.py`.
+FD dies of ill-posedness; MC dies of variance.
 
 ## Examples
-- `examples/fig6_side_by_side.py` — the Figure-6 FD-vs-MC figure
-- `examples/illposedness_report.py` — the full argument in six sections
-- `examples/fig8_defocusing_2d.py` — paper §7.3 in d=2: MC vs FD vs regularized FD
+- `examples/fig6.py` — paper Figure 6 (§7.2, d=1): explicit FD vs regularized FD vs MC
+- `examples/fig8.py` — paper Figure 8 (§7.3, d=2): the same three, as surfaces
+
+Both are ~20 lines: define the equation, hand it to three solvers, plot.
 
 ## Documentation
 

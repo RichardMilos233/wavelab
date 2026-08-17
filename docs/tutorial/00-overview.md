@@ -59,7 +59,7 @@ wavelab/
 ├── wavelab/
 │   ├── equation.py        # WaveEquation：方程 = 一份不可变数据（01 章）
 │   ├── solution.py        # Solution：所有求解器的统一输出
-│   ├── library.py         # 论文全部 11 个算例（含解析解 → 即测试集）
+│   ├── library.py         # 论文 13 个算例（含 §7.1/§7.3；有解析解的即测试集）
 │   ├── solvers/
 │   │   ├── fd_explicit.py         # 显式 leapfrog（02 章）
 │   │   ├── fd_implicit.py         # θ-格式 + Newton（03 章）
@@ -67,9 +67,10 @@ wavelab/
 │   │   ├── fd_regularized.py      # 谱截断正则化——真正有效的那个（03 章）
 │   │   └── mc/
 │   │       ├── reference.py       # 分支 MC 纯 Python 参考实现（04 章）
-│   └── experiments/       # compare / blowup_scan / mode_amplification / variance_profile
-├── examples/              # fig6_side_by_side.py, illposedness_report.py
-├── tests/                 # 101 个测试；闭式解 = golden tests
+│   └── experiments/       # compare / blowup_scan / mode_amplification /
+│                           # variance_profile / surfaces（d=2 曲面图）
+├── examples/              # fig6.py（Fig 6, d=1）、fig8.py（Fig 8, d=2）
+├── tests/                 # 113 个测试；闭式解 = golden tests
 └── docs/
     ├── tutorial/          # 本教程（中文）
     ├── agents/            # 给 AI agent 的分层参考（英文）

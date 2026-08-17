@@ -67,8 +67,9 @@
   stderr is still fine at t=0.5 but useless by t≈0.8 (stderr 66 on a value of 12),
   against t≈1.2 in d=1. Do not reuse the 1-D wall estimate.
 - **MC in d=2 costs per point**: a 17×17 surface at n=10⁴ is ~23 s, 21×21 at n=2×10⁴
-  is ~70 s. For accuracy use one point at large n; for a picture use many points at
-  small n. `examples/fig8_defocusing_2d.py` does both, deliberately.
+  is ~70 s. Split the two jobs: for a PICTURE use many points at small n (that is
+  what `examples/fig8.py` does, N=17 at n=10⁴); for an ACCURACY claim use one point
+  at large n — a coarse surface grid is far too noisy to quote as a reference.
 - **`RegularizedFD` d=2 keeps a box, not a disc**: modes k ≤ k_max AND m ≤ k_max, so
   the fastest survivor is (k_max, k_max) growing at √2·k_max·π. A d=2 run at k_max=K
   is roughly as aggressive as d=1 at √2·K — the 1-D death-time formula under-predicts

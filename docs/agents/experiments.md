@@ -49,4 +49,4 @@ Both FD solutions and MC solutions **on the default grid** carry `meta["shape"]`
 `surfaces([mc, fd])` just works. Only when you passed `points=` explicitly does MC not
 know the layout — then give `shape=(M, M)` (a square count is inferred if you don't).
 NaNs are masked rather than plotted.
-Used by `examples/fig8_defocusing_2d.py`.
+Used by `examples/fig8.py`.

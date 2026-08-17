@@ -41,14 +41,15 @@ limit is variance instead.
 ## What "done" looks like
 
 A written FYP report backed by reproducible figures. The repo is the evidence layer:
-`examples/fig6_side_by_side.py` is the Figure-6 comparison, `examples/illposedness_report.py`
-is the full argument in six sections, and `docs/tutorial/` (Chinese) carries the
-derivations for the report's method chapter.
+`examples/fig6.py` is the Figure-6 comparison (§7.2, d=1) and `examples/fig8.py` the
+Figure-8 one (§7.3, d=2); `tests/` locks every number the report quotes; and
+`docs/tutorial/` (Chinese) carries the derivations for the report's method chapter.
 
-One exception to "reproducible", and it matters when quoting these scripts: the
-ImplicitFD magnitudes in section 3 of `illposedness_report.py` are amplified round-off,
-not measurements. They differ between machines and their sign is not fixed — see
-`gotchas.md`. Everything else these scripts print is machine-independent.
+One exception to "reproducible", and it matters whenever `ImplicitFD` is quoted: the
+huge finite values it emits past t≈0.18 are amplified round-off, not measurements. They
+differ between machines and their sign is not fixed — see `gotchas.md`. Quote the time
+at which its output stops being meaningful, never the value. Everything else in this
+repo is machine-independent.
 
 ## Conventions inherited from the FYP
 
