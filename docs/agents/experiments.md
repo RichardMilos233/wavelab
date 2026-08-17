@@ -45,7 +45,8 @@ noisy, not wrong). On SINE_CI_1D at n=20k: rel stderr 0.1% at t=0.1, ~6% at 0.8,
 
 d=2 surface plots of Re u(x,y,t) — the paper's Figure 2 / Figure 8 layout.
 `surfaces([...], shapes=[...], labels=[...], path=...)` draws them side by side.
-FD solutions carry `meta["shape"]`; MC solutions are evaluated at whatever points you
-passed, so give `shape=(M, M)` when those form an M×M `indexing="ij"` meshgrid (a
-square count is inferred if you don't). NaNs are masked rather than plotted.
+Both FD solutions and MC solutions **on the default grid** carry `meta["shape"]`, so
+`surfaces([mc, fd])` just works. Only when you passed `points=` explicitly does MC not
+know the layout — then give `shape=(M, M)` (a square count is inferred if you don't).
+NaNs are masked rather than plotted.
 Used by `examples/fig8_defocusing_2d.py`.

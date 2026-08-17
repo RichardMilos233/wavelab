@@ -309,7 +309,7 @@ same physics, new home.
 4. **M4 — experiment polish:** ✅ done 2026-07-13. variance_profile, generalized
    mode_amplification, blowup_scan, 2-D compare guard, `illposedness_report.py`.
 
-**Status: M1–M4 complete, 110 tests green.** Remaining ideas, none started:
+**Status: M1–M4 complete, 113 tests green.** Remaining ideas, none started:
 implicit FD in d≥2, Deep Galerkin comparison (`../wave_equation/`).
 
 **Added 2026-08-17 — §7.3 (defocusing elliptic, d=2) support.** `RegularizedFD` now

@@ -68,11 +68,15 @@ at t=0.5 there is a usable **window**: k_max ≤ 2 is under-resolved, 3–10 mat
 ## BranchingMC(lam=0.25, n=10_000, q=None, seed=None, N=21) — `mc/`
 
 Pointwise unbiased estimator of u(z,t)=E[H] from the paper's branching-tree
-representation. **`n` = samples per point; `N` = size of the d=1 default grid**
-(`np.linspace(*domain, N)`, mirroring ExplicitFD's `N`). They differ only in case and
-mixing them up does not raise — it just gives a very noisy or a very slow answer.
-Explicit `points=` overrides `N` entirely. d=1,2,3; `points` may be arbitrary complex
-(off-axis works). d≥2: `points` shape `(P, dim)` required, `eq.grad_phi` required
+representation. **`n` = samples per point; `N` = points PER AXIS of the default grid**
+(mirroring ExplicitFD's `N`), so the default grid is `N**dim` points and `meta["shape"]
+= (N,)*dim` is set for plotting. `n` and `N` differ only in case and mixing them up does
+not raise — it just gives a very noisy or a very slow answer. Explicit `points=`
+overrides `N` entirely (and then no `shape` is recorded — the layout is unknown).
+**Cost is LINEAR in the number of points** (unlike FD, where one march yields the whole
+field): the default grid is 21 / 441 / 9261 evaluations in d=1/2/3, so choose `N` with
+that in mind. d=1,2,3; `points` may be arbitrary complex (off-axis works).
+d≥2: `points` shape `(P, dim)`, `eq.grad_phi` required
 (leaf carries y·∇φ(z+y)); d=2 mark is a disc `R=s√(1−(1−p)²)`, d=3 the sphere
 `α=arccos(1−2p)`. `q` maps power→probability (default uniform on `eq.f` keys);
 changes variance only — tested. `meta`: `stderr` (T,P), `n`, `lam`, `seed`,

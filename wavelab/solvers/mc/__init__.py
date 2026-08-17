@@ -13,10 +13,15 @@ class BranchingMC:
 
     def __init__(self, lam=0.25, n=10_000, q=None, seed=None, N=21):
         """CAUTION: `n` and `N` differ only in case and mean different things.
-        `n` = Monte Carlo samples per point (10_000). `N` = how many evaluation
-        points the d=1 default grid has (21), mirroring ExplicitFD's `N`. Mixing
-        them up does not raise — it silently gives a very noisy answer (n small)
-        or a very slow one (N large). Passing `points=` explicitly overrides `N`.
+        `n` = Monte Carlo samples per point (10_000). `N` = points PER AXIS of the
+        default grid (21), exactly as in ExplicitFD — so the default grid has N^dim
+        points. Mixing them up does not raise: it silently gives a very noisy answer
+        (n too small) or a very slow one (N too large). `points=` overrides `N`.
+
+        Unlike FD — where one march produces the whole field — MC cost is LINEAR in
+        the number of points, so the default grid costs N^dim point-evaluations:
+        21 in d=1, 441 in d=2, 9261 in d=3. Pick N accordingly; it is your dial, and
+        `points=` is there when a full grid is not what you want.
         """
         if int(N) < 2:
             raise ValueError(f"N (number of default grid points) must be >= 2, got {N}")
@@ -41,14 +46,18 @@ class BranchingMC:
             raise ValueError(
                 f"BranchingMC needs eq.grad_phi for dim={eq.dim}: the d>=2 boundary "
                 f"functional carries a y.grad(phi)(z+y) term (see spec §3.3)")
+        default_shape = None
         if points is None:
-            if eq.dim >= 2:
-                raise ValueError(f"points is required for dim={eq.dim} "
-                                 f"(shape (P, {eq.dim}) complex); no default grid")
             if eq.domain is None:
                 raise ValueError("points is required when eq.domain is None")
-            (a, b), = eq.domain
-            points = np.linspace(a, b, self.N)
+            axes = [np.linspace(a, b, self.N) for a, b in eq.domain]
+            if eq.dim == 1:
+                points = axes[0]
+            else:
+                # same convention as ExplicitFD: indexing="ij", row-major ravel
+                mesh = np.meshgrid(*axes, indexing="ij")
+                points = np.stack([m.ravel() for m in mesh], axis=1)
+                default_shape = (self.N,) * eq.dim
         points = np.asarray(points, dtype=np.complex128)
         if eq.dim == 1:
             points = np.atleast_1d(points)
@@ -75,4 +84,5 @@ class BranchingMC:
                                 "N": self.N},
                         times=times, points=points, u=u,
                         meta={"stderr": se, "n": self.n, "lam": self.lam,
-                              "seed": self.seed})
+                              "seed": self.seed,
+                              **({"shape": default_shape} if default_shape else {})})
