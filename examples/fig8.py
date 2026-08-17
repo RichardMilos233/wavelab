@@ -2,7 +2,7 @@ import cmath, math
 from wavelab import WaveEquation, ExplicitFD, RegularizedFD, BranchingMC
 from wavelab.experiments import surfaces
 
-# u_tt + Δu + u + u³ = 0   ==>   u_tt − (i)²Δu = −u − u³      (defocusing: a₃ = −1)
+# u_tt + Δu + u + u³ = 0   ==>   u_tt − (i)²Δu = −u − u³
 
 phi = lambda z: cmath.sin(math.pi * z[0]) * cmath.sin(math.pi * z[1])
 
@@ -16,6 +16,6 @@ SINE_DEFOCUS_CI = WaveEquation(
 times = [0.5]
 fd = ExplicitFD(N=61, dt=0.002).solve(SINE_DEFOCUS_CI, times)
 rfd = RegularizedFD(N=61, dt=0.002, k_max=6).solve(SINE_DEFOCUS_CI, times)
-mc = BranchingMC(lam=0.25, n=10_000, seed=0, N=17).solve(SINE_DEFOCUS_CI, times)
+mc = BranchingMC(lam=0.25, n=50_000, seed=0, N=51).solve(SINE_DEFOCUS_CI, times)
 surfaces([mc, fd, rfd], labels=["Monte Carlo", "Explicit FD", "Regularized FD"],
          path="fig8.png")
