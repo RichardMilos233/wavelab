@@ -17,35 +17,51 @@ class Comparison:
         return sorted(shared)
 
     def _check_1d(self):
+        """Only .plot() is 1-D only — .table() probes by nearest point in any dim."""
         for s in self.solutions:
             if s.points.ndim > 1:
                 raise NotImplementedError(
-                    f"compare() is 1-D only; solution '{s.solver}' has "
-                    f"dim={s.points.shape[1]} points. Compare d>=2 runs numerically "
-                    f"(e.g. against eq.exact) instead of via compare().")
+                    f"compare(...).plot() is 1-D only; solution '{s.solver}' has "
+                    f"dim={s.points.shape[1]} points. For d=2 use "
+                    f"experiments.surfaces([...]) to draw, or .table() to compare "
+                    f"numbers.")
+
+    @staticmethod
+    def _nearest(sol, x):
+        """Index of the point of `sol` closest to x (scalar for d=1, vector for d>1)."""
+        if sol.points.ndim == 1:
+            return int(np.argmin(np.abs(sol.points - x)))
+        return int(np.argmin(np.linalg.norm(sol.points - np.asarray(x), axis=1)))
 
     def rows(self, probe_points=None):
-        self._check_1d()
+        """One row per (shared time, probe point). Works in any dimension: each
+        solution is read at ITS OWN nearest point, never interpolated."""
         if probe_points is None:
             probe_points = min((s.points for s in self.solutions), key=len)
+        probe_points = np.asarray(probe_points)
+        if probe_points.ndim == 1:
+            probe_points = np.atleast_1d(probe_points)
         out = []
         for t in self._shared_times():
-            for x in np.atleast_1d(probe_points):
-                row = {"t": float(t), "x": complex(x)}
+            for x in probe_points:
+                row = {"t": float(t), "x": x}
                 for s in self.solutions:
                     ti = int(np.argmin(np.abs(s.times - t)))
-                    pi = int(np.argmin(np.abs(s.points - x)))   # nearest own point
-                    row[s.solver] = s.u[ti, pi]
+                    row[s.solver] = s.u[ti, self._nearest(s, x)]
                 out.append(row)
         return out
 
     def table(self, probe_points=None):
         rows = self.rows(probe_points)
         names = [s.solver for s in self.solutions]
-        lines = ["t      x          " + "  ".join(f"{n:>14}" for n in names)]
+        multi = bool(rows) and np.ndim(rows[0]["x"]) > 0
+        lines = [f"t      {'point' if multi else 'x':<16} "
+                 + "  ".join(f"{n:>14}" for n in names)]
         for r in rows:
+            xs = ("(" + ", ".join(f"{v:.2f}" for v in np.real(r["x"])) + ")" if multi
+                  else f"{float(np.real(r['x'])):.4f}")
             vals = "  ".join(f"{r[n].real:+14.4f}" for n in names)
-            lines.append(f"{r['t']:<5}  {r['x'].real:<9.4f}  {vals}")
+            lines.append(f"{r['t']:<5}  {xs:<16} {vals}")
         return "\n".join(lines)
 
     def plot(self, path=None):

@@ -12,8 +12,9 @@ Summarizes `wavelab/experiments/`. Everything consumes `Solution` objects only
 - `.table(probe_points=None)` → printable string (real parts).
 - `.plot(path=None)` → one panel per solution, shared times overlaid, blow-up
   annotated in the title. House style from `plotting.py` (DPI 140).
-- 1-D only; d≥2 points raise NotImplementedError with guidance (compare numerically
-  against `eq.exact` instead).
+- `.rows()`/`.table()` work in **any dimension** (nearest point by Euclidean distance
+  for d≥2; the table prints `(x, y)` tuples). Only `.plot()` is 1-D — use
+  `surfaces()` for d=2 pictures.
 
 ## blowup_scan(eq, make_solver, Ns, dts, probe_time=0.5) — `blowup.py`
 
@@ -39,3 +40,12 @@ Runs the given `BranchingMC` at one point across `times`; rows
 {t, u, stderr, rel_stderr}. Locates MC's own short-time wall (variance explosion —
 noisy, not wrong). On SINE_CI_1D at n=20k: rel stderr 0.1% at t=0.1, ~6% at 0.8,
 >100% by t=1.2. Suppresses the high-stderr warning (it IS the signal).
+
+## surface(sol, i=0, shape=None, ...) / surfaces(sols, ...) — `plotting.py`
+
+d=2 surface plots of Re u(x,y,t) — the paper's Figure 2 / Figure 8 layout.
+`surfaces([...], shapes=[...], labels=[...], path=...)` draws them side by side.
+FD solutions carry `meta["shape"]`; MC solutions are evaluated at whatever points you
+passed, so give `shape=(M, M)` when those form an M×M `indexing="ij"` meshgrid (a
+square count is inferred if you don't). NaNs are masked rather than plotted.
+Used by `examples/fig8_defocusing_2d.py`.

@@ -29,11 +29,16 @@ def test_plot_writes_file(tmp_path):
     fig = compare(A, B).plot(path=str(out))
     assert out.exists() and fig is not None
 
-def test_compare_rejects_2d_points():
+def test_compare_handles_2d_numerically_but_not_graphically():
+    """d>=2: .rows()/.table() probe by nearest point in any dimension; only .plot()
+    is 1-D only (use experiments.surfaces for d=2 pictures)."""
     import pytest
     from wavelab import Solution
     two_d = Solution(eq=None, solver="explicit_fd", params={}, times=[0.1],
                      points=np.array([[0 + 0j, 0 + 0j], [1 + 0j, 1 + 0j]]),
                      u=np.array([[1 + 0j, 2 + 0j]]), meta={})
-    with pytest.raises(NotImplementedError, match="dim"):
-        compare(two_d).rows()
+    rows = compare(two_d).rows(probe_points=np.array([[0.9, 0.9]]))
+    assert rows[0]["explicit_fd"] == 2 + 0j          # nearest point is (1, 1)
+    assert "explicit_fd" in compare(two_d).table(probe_points=np.array([[0.1, 0.1]]))
+    with pytest.raises(NotImplementedError, match="1-D only"):
+        compare(two_d).plot()

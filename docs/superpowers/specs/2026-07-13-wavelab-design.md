@@ -148,7 +148,8 @@ solve per step. d=1 only. Blows up on a fixed grid — see §3.3a.
 
 **`RegularizedFD(N, dt, k_max)`** — explicit leapfrog + spectral low-pass filter
 (keep only Dirichlet sine modes `k ≤ k_max`). **This is the working Fig-7 analogue.**
-d=1 only.
+d=1 and d=2 (the d=2 cut-off is the separable tensor product `U -> P U P`, keeping
+modes k ≤ k_max AND m ≤ k_max); it is also the working Fig-8 analogue for §7.3.
 
 ### 3.3a Finding (2026-07-13): implicit does NOT cure ill-posedness
 
@@ -308,9 +309,18 @@ same physics, new home.
 4. **M4 — experiment polish:** ✅ done 2026-07-13. variance_profile, generalized
    mode_amplification, blowup_scan, 2-D compare guard, `illposedness_report.py`.
 
-**Status: M1–M4 complete, 102 tests green.** Remaining ideas, none started:
-implicit FD in d≥2, 2-D field visualisation, Deep Galerkin comparison
-(`../wave_equation/`).
+**Status: M1–M4 complete, 110 tests green.** Remaining ideas, none started:
+implicit FD in d≥2, Deep Galerkin comparison (`../wave_equation/`).
+
+**Added 2026-08-17 — §7.3 (defocusing elliptic, d=2) support.** `RegularizedFD` now
+covers d=2 via the separable tensor-product cut-off `U -> P U P`; `library` gains
+SINE_DEFOCUS_C1_2D (§7.1) and SINE_DEFOCUS_CI_2D (§7.3), whose cubic has a₃ = −1;
+`experiments.surface/surfaces` draw d=2 fields; `compare(...).rows()/.table()` now
+work in any dimension (only `.plot()` stays 1-D). Result: on §7.3 the explicit scheme
+reproduces the paper's Fig 8b (bounded ±270 garbage, *not* NaN — the defocusing cubic
+saturates it), while `RegularizedFD(k_max=6)` matches a 2×10⁵-sample MC reference at
+the centre to 0.5σ. The k_max trade-off shows BOTH ends in d=2: ≤2 under-resolved,
+3–10 correct, ≥20 contaminated.
 
 Each milestone ends runnable with green tests. Implementation is planned for a
 separate session (Opus) working from this spec plus a written implementation plan.

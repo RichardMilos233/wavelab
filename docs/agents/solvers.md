@@ -10,7 +10,7 @@ arrays of shape `(T, P)`. Requested `times` must be integer multiples of `dt`
 | You want... | Use |
 |---|---|
 | The honest FD baseline (blows up on ill-posed problems, loudly) | `ExplicitFD` |
-| A *stable* FD curve on the ill-posed problem | `RegularizedFD` (the only FD that works there) |
+| A *stable* FD curve or surface on the ill-posed problem | `RegularizedFD` (the only FD that works there; d=1 and d=2) |
 | The unbiased pointwise reference / complex evaluation points | `BranchingMC` |
 | To demonstrate that implicit does NOT fix ill-posedness | `ImplicitFD`, `LinearlyImplicitFD` |
 
@@ -53,7 +53,17 @@ Explicit leapfrog + per-step projection onto Dirichlet sine modes k ≤ k_max
 (`sine_lowpass(N, k_max)` — idempotent DST-I projector, tested). The working Fig-7
 analogue: k_max=12 survives to t=0.7 with err ~0.15 vs MC; k_max=20 dies at 0.64;
 k_max=30 at 0.438 (more modes kept ⇒ earlier death — the regularization IS the
-stability). d=1 only.
+stability).
+
+**d=2** (paper §7.1/§7.3): the 2-D Dirichlet eigenfunctions are tensor products
+sin(kπx)sin(mπy), so the cut-off is separable — `U -> P U P` on the interior, two
+(N−2)³ matmuls per step, never an (N−2)⁴ matrix. It keeps a BOX in mode space
+(k ≤ k_max AND m ≤ k_max). **Carry 1-D intuition across carefully:** mode (k,m) grows
+at √((k²+m²)π²−1), so the fastest retained mode is (k_max, k_max) at √2·k_max·π —
+a d=2 run with k_max=K is about as aggressive as d=1 with √2·K. On SINE_DEFOCUS_CI_2D
+at t=0.5 there is a usable **window**: k_max ≤ 2 is under-resolved, 3–10 matches MC to
+<0.15, ≥20 is contaminated. In d=1 only the upper end of that window is visible.
+`meta` adds `dy`, `shape` in 2-D. d=3 not implemented.
 
 ## BranchingMC(lam=0.25, n=10_000, q=None, seed=None, N=21) — `mc/`
 

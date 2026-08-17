@@ -9,7 +9,8 @@ def test_all_equations_present():
         "SIM01_QUADRATIC_1D", "SIM02_CUBIC_1D", "SIM03_MIXED_1D",
         "SIM05_QUADRATIC_2D", "SIM08_QUADRATIC_3D",
         "SOLITON_1D", "SOLITON_2D", "SOLITON_3D",
-        "SINE_CI_1D", "SINE_CI_2D", "SINE_C1_2D"}
+        "SINE_CI_1D", "SINE_CI_2D", "SINE_C1_2D",
+        "SINE_DEFOCUS_C1_2D", "SINE_DEFOCUS_CI_2D"}
 
 def test_with_exact_subset():
     assert set(library.WITH_EXACT) == {

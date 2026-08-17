@@ -10,7 +10,7 @@ compare them. Design: `docs/superpowers/specs/2026-07-13-wavelab-design.md`.
 conda env create -f environment.yml     # creates env "wavelab" (macOS/Linux/Windows)
 conda activate wavelab
 pip install -e .
-pytest -m "not slow"                    # ~7 s, 96 tests; `pytest` adds 6 slow ones
+pytest -m "not slow"                    # ~11 s, 104 tests; `pytest` adds 6 slow ones
 ```
 
 Only hard constraint: **numpy `<2.4`** (2.4.x breaks matplotlib's compiled ABI on
@@ -32,10 +32,10 @@ compare(fd, mc).plot("fig6.png")             # FD explodes; MC stays smooth
   - `ExplicitFD` (d=1,2) — leapfrog. Blows up on the ill-posed problem, loudly.
   - `ImplicitFD` (d=1) — θ-scheme + Newton. **Does not cure ill-posedness** (see below).
   - `LinearlyImplicitFD` (d=1) — the paper's named method; blows up on a fixed grid.
-  - `RegularizedFD` (d=1) — leapfrog + spectral cut-off. **The one that actually works.**
+  - `RegularizedFD` (d=1,2) — leapfrog + spectral cut-off. **The one that actually works.**
   - `BranchingMC` (d=1,2,3) — pointwise `E[H]`; pure-Python readable recursion.
-- **Equations**: `wavelab.library` — all 11 of the paper's simulations, 8 with closed forms.
-- **Experiments**: `compare` · `blowup_scan` · `mode_amplification` · `variance_profile`
+- **Equations**: `wavelab.library` — 13 of the paper's cases (incl. §7.1/§7.3), 8 with closed forms.
+- **Experiments**: `compare` · `blowup_scan` · `mode_amplification` · `variance_profile` · `surfaces` (d=2)
 
 ## The headline result
 
@@ -70,6 +70,7 @@ FD dies of ill-posedness; MC dies of variance. See `examples/illposedness_report
 ## Examples
 - `examples/fig6_side_by_side.py` — the Figure-6 FD-vs-MC figure
 - `examples/illposedness_report.py` — the full argument in six sections
+- `examples/fig8_defocusing_2d.py` — paper §7.3 in d=2: MC vs FD vs regularized FD
 
 ## Documentation
 

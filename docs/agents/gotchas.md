@@ -54,6 +54,26 @@
 - Statistical tests at 3σ fail ~0.3% of runs by chance: rerun once with another seed
   before investigating; twice-failing = real bug.
 
+## d=2 and the defocusing problems (§7.1, §7.3) — different failure mode
+
+- **`blowup_time` is the wrong instrument on a defocusing problem.** §7.1/§7.3 carry
+  a₃ = −1, and −u³ *opposes* growth, so amplified round-off saturates instead of
+  running away. Explicit FD on SINE_DEFOCUS_CI_2D returns bounded garbage
+  (max|u| ≈ 175 at N=41, 274 at N=61) with `blowup_time=None` and no NaN — which is
+  exactly the paper's Fig 8b. Judge these runs by ACCURACY against MC, not by when
+  they die. The focusing counterpart (SINE_CI_2D, a₃=+1) does NaN, at t=0.398 (N=41).
+- **MC's variance wall arrives much earlier in d=2**: mode (1,1) grows at
+  √(2π²−1) = 4.33 versus d=1's √(π²−1) = 2.98. On SINE_DEFOCUS_CI_2D the relative
+  stderr is still fine at t=0.5 but useless by t≈0.8 (stderr 66 on a value of 12),
+  against t≈1.2 in d=1. Do not reuse the 1-D wall estimate.
+- **MC in d=2 costs per point**: a 17×17 surface at n=10⁴ is ~23 s, 21×21 at n=2×10⁴
+  is ~70 s. For accuracy use one point at large n; for a picture use many points at
+  small n. `examples/fig8_defocusing_2d.py` does both, deliberately.
+- **`RegularizedFD` d=2 keeps a box, not a disc**: modes k ≤ k_max AND m ≤ k_max, so
+  the fastest survivor is (k_max, k_max) growing at √2·k_max·π. A d=2 run at k_max=K
+  is roughly as aggressive as d=1 at √2·K — the 1-D death-time formula under-predicts
+  if applied naively.
+
 ## Reference-code bugs (do NOT validate against these)
 
 1. `../Nonlinear_Wave_simulations/Simulation_07` (d=2, c=i, sine): sets `aJ = -1`

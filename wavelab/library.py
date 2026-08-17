@@ -108,10 +108,34 @@ SINE_C1_2D = WaveEquation(
     phi=_sin2, psi=lambda z: -_sin2(z), grad_phi=_grad_sin2,
     domain=((0.0, 1.0), (0.0, 1.0)), name="SINE_C1_2D")
 
+# --------------------------------------- DEFOCUSING sine data: paper §7.1 and §7.3
+# The paper's §7.1 (7.1) and §7.3 (7.3) carry the cubic with the OPPOSITE sign to
+# the soliton/§7.2 family above:
+#   §7.1  u_tt - Lap u + u + u^3 = 0  ->  c = 1,  f = -u - u^3
+#   §7.3  u_tt + Lap u + u + u^3 = 0  ->  c = i,  f = -u - u^3
+# so a_3 = -1, not +1. Do not confuse these with SINE_C1_2D / SINE_CI_2D, which are
+# the FOCUSING (a_3 = +1) counterparts and are not what §7.1/§7.3 solve.
+#
+# The sign matters more than it looks: -u^3 OPPOSES growth, so on the ill-posed §7.3
+# problem amplified round-off SATURATES instead of running away. Explicit FD there
+# returns bounded garbage (O(10^2)) with blowup_time=None rather than NaN — which is
+# exactly what the paper's Figure 8b shows.
+
+SINE_DEFOCUS_C1_2D = WaveEquation(
+    dim=2, c=1, f={1: -1, 3: -1},
+    phi=_sin2, psi=lambda z: -_sin2(z), grad_phi=_grad_sin2,
+    domain=((0.0, 1.0), (0.0, 1.0)), name="SINE_DEFOCUS_C1_2D")
+
+SINE_DEFOCUS_CI_2D = WaveEquation(
+    dim=2, c=1j, f={1: -1, 3: -1},
+    phi=_sin2, psi=lambda z: -_sin2(z), grad_phi=_grad_sin2,
+    domain=((0.0, 1.0), (0.0, 1.0)), name="SINE_DEFOCUS_CI_2D")
+
 ALL = {eq.name: eq for eq in (
     SIM01_QUADRATIC_1D, SIM02_CUBIC_1D, SIM03_MIXED_1D,
     SIM05_QUADRATIC_2D, SIM08_QUADRATIC_3D,
     SOLITON_1D, SOLITON_2D, SOLITON_3D,
     SINE_CI_1D, SINE_CI_2D, SINE_C1_2D,
+    SINE_DEFOCUS_C1_2D, SINE_DEFOCUS_CI_2D,
 )}
 WITH_EXACT = {k: v for k, v in ALL.items() if v.exact is not None}
