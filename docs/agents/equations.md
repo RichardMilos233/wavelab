@@ -36,7 +36,7 @@ forms. Transcription guard test asserts `exact(z,0) == phi(z)` for all of them.
 | SINE_CI_1D | 1 | i | −u+u³ | — | **the Figure-6/7 problem** |
 | SINE_CI_2D | 2 | i | −u+u³ | — | 2-D ill-posed |
 | SINE_C1_2D | 2 | 1 | −u+u³ | — | well-posed control |
-| SINE_DEFOCUS_C1_2D | 2 | 1 | **−u−u³** | — | **paper §7.1** (defocusing Klein–Gordon) |
+| SINE_DEFOCUS_C1_2D | 2 | 1 | **−u−u³** | — | **paper §7.1** (defocusing Klein–Gordon); well-posed control for §7.3 — `test_fd_explicit_2d.py` |
 | SINE_DEFOCUS_CI_2D | 2 | i | **−u−u³** | — | **paper §7.3** (defocusing elliptic, Fig 8) |
 
 **Watch the cubic's sign.** §7.1 and §7.3 have a₃ = **−1**; the soliton / SINE_CI

@@ -48,5 +48,8 @@ d=2 surface plots of Re u(x,y,t) — the paper's Figure 2 / Figure 8 layout.
 Both FD solutions and MC solutions **on the default grid** carry `meta["shape"]`, so
 `surfaces([mc, fd])` just works. Only when you passed `points=` explicitly does MC not
 know the layout — then give `shape=(M, M)` (a square count is inferred if you don't).
-NaNs are masked rather than plotted.
-Used by `examples/fig8.py`.
+NaNs are masked rather than plotted (an all-NaN panel still renders — the failure
+IS the picture).
+Used by `examples/fig8.py`; covered by `tests/test_surfaces.py`,
+which asserts the `meta["shape"]` contract is READ (test_mc_highdim only asserts
+it is written).

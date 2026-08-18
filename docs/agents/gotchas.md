@@ -106,6 +106,34 @@ true imaginary part is 0). Sample points, authors' MC vs our RegularizedFD:
 2.36020 · (0.1,0.5) 1.21042 / 1.21008. This is a one-time cross-check recorded here,
 NOT a test — the CSV is not in this repo and a test would fail on any other machine.
 
+## Don't judge a DEFOCUSING problem with an absolute threshold (fixed 2026-08-18)
+
+`tests/test_fd_regularized_2d.py::test_k_max_has_a_usable_window` was RED from
+`38f507f`, the commit that introduced it, until 2026-08-18. Re-running that commit in
+isolation reproduced the identical value `0.7490911728582663`, so it was never a
+regression — it was committed without the suite being green, and the messages of
+`de92603` and `775454a` ("113 tests green") are wrong on this point. Worth knowing if
+you are ever bisecting through that range.
+
+The bug was in the test, not the solver. It is the d=2 analogue of
+`test_more_modes_kept_means_earlier_blowup`, which in d=1 (focusing, a3=+1) judges by
+`blowup_time`. §7.3 is DEFOCUSING, so `blowup_time` is always None (see the section
+above) and it had to judge by distance from an MC reference instead — but it kept a
+d=1-sized ABSOLUTE threshold:
+
+    k_max=20 -> err > 1.0      actual 0.749
+
+which the problem cannot reach, because `-u^3` opposes growth and the deviation
+SATURATES. The qualitative claim was always true; only the magnitude was invented.
+
+Now judged relatively, which is what the physics actually guarantees:
+
+    err[20] > 10 * max(err[3], err[6])     # ~16x  -- outside vs inside the window
+    err[20] > 10 * mc_stderr               # ~20x  -- real bias, not sampling noise
+
+**The rule:** on §7.1/§7.3 (a3 = -1) never assert a blow-up time and never assert an
+absolute error bound for a diverging run. Saturation bounds both. Assert SEPARATION.
+
 ## Regression lock (never edit expected numbers)
 
 SINE_CI_1D, dt=0.002: explicit blow-up 0.44 (N=51) / 0.232 (N=101) / 0.128 (N=201);

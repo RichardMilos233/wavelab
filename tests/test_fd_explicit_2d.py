@@ -1,7 +1,7 @@
 import cmath, math, warnings
 import numpy as np
 import pytest
-from wavelab import WaveEquation, ExplicitFD
+from wavelab import WaveEquation, ExplicitFD, library
 
 # well-posed 2-D control: c=1, f=0, phi=sin(pi x)sin(pi y), psi=0
 # exact: u = sin(pi x) sin(pi y) cos(sqrt(2) pi t)
@@ -58,3 +58,46 @@ def test_dim3_still_unsupported():
                       domain=((0, 1), (0, 1), (0, 1)))
     with pytest.raises(NotImplementedError):
         ExplicitFD().solve(eq, times=[0.1])
+
+
+# --- paper section 7.1: defocusing Klein-Gordon, c=1 (the well-posed control) -------
+# SINE_DEFOCUS_C1_2D and SINE_DEFOCUS_CI_2D share data and f = -u - u^3 and differ
+# ONLY in c. Everything the section-7.3 study blames on ill-posedness therefore has
+# to disappear here, and it does.
+
+def test_defocusing_c1_is_smooth_and_bounded_where_ci_is_grid_noise():
+    """Same equation, c=1 instead of c=i. The §7.3 failure is entirely the operator."""
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        ok = ExplicitFD(N=41, dt=0.002).solve(library.SINE_DEFOCUS_C1_2D, times=[0.5])
+        bad = ExplicitFD(N=41, dt=0.002).solve(library.SINE_DEFOCUS_CI_2D, times=[0.5])
+
+    assert ok.meta["blowup_time"] is None
+    assert np.all(np.isfinite(ok.u[0]))
+    assert np.abs(ok.u[0].real).max() < 1.0            # bounded oscillation, |u| ~ 0.82
+
+    def roughness(sol):
+        g = sol.u[0].real.reshape(41, 41)
+        return np.abs(g[2:, 1:-1] - 2 * g[1:-1, 1:-1] + g[:-2, 1:-1]).max()
+
+    assert roughness(ok) < 0.05                        # ~0.005: smooth
+    assert roughness(bad) > 100                        # ~620: grid-scale noise
+    assert np.abs(bad.u[0].real).max() > 100           # ~170, and bounded (defocusing)
+    assert bad.meta["blowup_time"] is None             # -u^3 saturates: never NaN
+
+
+def test_defocusing_c1_converges_under_refinement():
+    """The well-posedness fingerprint, and the exact opposite of
+    test_illposed_signature.py: refining the grid makes c=1 BETTER and c=i WORSE."""
+    ok, bad = [], []
+    for N in (21, 41, 61):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            a = ExplicitFD(N=N, dt=0.002).solve(library.SINE_DEFOCUS_C1_2D, times=[0.5])
+            b = ExplicitFD(N=N, dt=0.002).solve(library.SINE_DEFOCUS_CI_2D, times=[0.5])
+        ok.append(a.u[0].real.reshape(N, N)[N // 2, N // 2])
+        bad.append(np.abs(b.u[0].real).max())
+
+    d1, d2 = abs(ok[0] - ok[1]), abs(ok[1] - ok[2])
+    assert d1 < 0.01 and d2 < d1                       # converging: 8.8e-4 -> 1.6e-4
+    assert bad[0] < bad[1] < bad[2]                    # diverging: 2.8 -> 170 -> 273

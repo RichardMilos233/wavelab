@@ -84,20 +84,36 @@ def test_regularized_2d_is_grid_independent_where_explicit_is_not():
 
 def test_k_max_has_a_usable_window():
     """Unlike d=1, both ends of the trade-off are visible here: too FEW modes cannot
-    resolve the true solution, too MANY let the ill-posedness back in."""
+    resolve the true solution, too MANY let the ill-posedness back in.
+
+    The d=1 analogue (test_more_modes_kept_means_earlier_blowup) judges by blow-up
+    time. It cannot be used here: §7.3 is DEFOCUSING, -u^3 opposes growth, and
+    blowup_time is always None (see test_defocusing_saturates_while_focusing_blows_up).
+    So the judge is distance from an MC reference instead -- and it is RELATIVE, for
+    the same reason: saturation bounds how far the k_max=20 run can drift, so no
+    absolute threshold carried over from d=1 is meaningful. What the physics does
+    guarantee is separation, and that is what is asserted.
+    """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         mc = BranchingMC(lam=0.25, n=40_000, seed=1).solve(
             EQ, [0.5], points=np.array([[0.5, 0.5]]))
         ref = mc.u[0, 0].real
+        noise = mc.meta["stderr"][0, 0].real
         got = {}
         for K in (1, 3, 6, 20):
             r = RegularizedFD(N=41, dt=0.002, k_max=K).solve(EQ, [0.5])
             got[K] = r.u[0].reshape(41, 41).real[20, 20]
-    assert abs(got[1] - ref) > 0.2       # under-resolved: only mode (1,1) survives
-    assert abs(got[3] - ref) < 0.15      # inside the window
-    assert abs(got[6] - ref) < 0.15      # inside the window
-    assert abs(got[20] - ref) > 1.0      # cut-off too high: instability is back
+    err = {K: abs(v - ref) for K, v in got.items()}
+
+    assert err[1] > 0.2                  # under-resolved: only mode (1,1) survives
+    assert err[3] < 0.15                 # inside the window (~0.046)
+    assert err[6] < 0.15                 # inside the window (~0.014)
+
+    # Outside the window: an order of magnitude worse than ANYWHERE inside it, and
+    # far past MC noise -- i.e. real bias, not sampling error. Measured ~16x and ~20x.
+    assert err[20] > 10 * max(err[3], err[6])
+    assert err[20] > 10 * noise
 
 
 def test_defocusing_saturates_while_focusing_blows_up():
