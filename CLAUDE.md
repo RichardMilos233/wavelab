@@ -28,6 +28,11 @@ to run, test and understand wavelab is self-contained here. Do not try to read t
 if they are absent; do not re-derive results from them without reading
 `docs/agents/gotchas.md` first (two of them contain bugs).
 
+The paper is by **Joshua J. Y. Chan and Nicolas Privault** and is the method's
+source — cite it for anything produced with this repo. Formal citation lives in
+`CITATION.cff` and the README's Citation section; keep both in step if the paper
+gains an arXiv id, DOI or journal reference.
+
 ## Hard rules
 
 - Regression numbers (spec §6 / `tests/test_fig6_regression.py`) are LOCKED —

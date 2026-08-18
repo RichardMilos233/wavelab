@@ -86,6 +86,40 @@ Both are ~20 lines: define the equation, hand it to three solvers, plot.
   the ill-posedness finding; plans document how M1–M4 were built).
 - Figures in the tutorial are reproducible: `docs/tutorial/figures/make_figures.py`.
 
+## Citation
+
+This toolbox implements and studies the branching Monte Carlo method of **Joshua J. Y.
+Chan** and **Nicolas Privault**. If you use wavelab, or any result produced with it,
+please cite their paper:
+
+> J. J. Y. Chan and N. Privault. *Probabilistic representation and classical solutions
+> of wave equations with complex polynomial nonlinearities.* Manuscript, 28 January
+> 2026. School of Physical and Mathematical Sciences, Nanyang Technological University.
+
+```bibtex
+@unpublished{chan_privault_2026_wave,
+  author = {Chan, Joshua J. Y. and Privault, Nicolas},
+  title  = {Probabilistic representation and classical solutions of wave
+            equations with complex polynomial nonlinearities},
+  school = {School of Physical and Mathematical Sciences,
+            Nanyang Technological University, Singapore},
+  year   = {2026},
+  month  = {1},
+  note   = {Manuscript dated 28 January 2026}
+}
+```
+
+Everything wavelab does that is *method* rather than *engineering* comes from that
+paper: the branching-tree representation `u = E[H]` and its three ingredients
+(exponential clock, light-cone spatial mark, splitting into `k` children with weights
+`a_k/q_k`, `e^{λτ}`, `τ/λ`), the integrability conditions that bound the usable time
+window, and the numerical cases reproduced here — §7.1, §7.2 (Figures 6 and 7) and
+§7.3 (Figure 8). The C++ reference implementation the solvers were cross-checked
+against is also Joshua Chan's.
+
+`CITATION.cff` carries the same information in machine-readable form, so GitHub's
+"Cite this repository" button resolves to the paper.
+
 ## Notes
 - Blow-up is **data**, not an error: solvers record `meta["blowup_time"]` and return NaN after it.
 - MC always reports `meta["stderr"]`; pass `seed=` for reproducibility.

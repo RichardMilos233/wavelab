@@ -1,0 +1,48 @@
+cff-version: 1.2.0
+message: >-
+  wavelab reproduces the branching Monte Carlo method of Chan and Privault.
+  If you use this code, please cite the paper (preferred-citation) as well as
+  this repository.
+title: "wavelab: a solver toolbox for nonlinear wave equations"
+abstract: >-
+  Finite-difference and branching Monte Carlo solvers for nonlinear wave
+  equations u_tt - c^2 Laplacian(u) = sum a_k u^k with complex wave speed and
+  complex data, in space dimensions 1, 2 and 3. Built to reproduce and study the
+  ill-posed (c = i) elliptic Cauchy problems of Chan and Privault (2026).
+type: software
+authors:
+  - family-names: Liao
+    given-names: Tianrui
+    alias: RichardMilos233
+    email: richardmilos233@gmail.com
+    affiliation: "Nanyang Technological University"
+repository-code: "https://github.com/RichardMilos233/wavelab"
+keywords:
+  - nonlinear wave equations
+  - branching processes
+  - Monte Carlo method
+  - ill-posed problems
+  - finite differences
+
+# The method this toolbox implements and studies.
+preferred-citation:
+  type: unpublished
+  title: >-
+    Probabilistic representation and classical solutions of wave equations with
+    complex polynomial nonlinearities
+  authors:
+    - family-names: Chan
+      given-names: "Joshua J. Y."
+      affiliation: >-
+        School of Physical and Mathematical Sciences, Nanyang Technological
+        University, Singapore
+      email: joshuaju001@e.ntu.edu.sg
+    - family-names: Privault
+      given-names: Nicolas
+      affiliation: >-
+        School of Physical and Mathematical Sciences, Nanyang Technological
+        University, Singapore
+      email: nprivault@ntu.edu.sg
+  year: 2026
+  month: 1
+  notes: "Manuscript dated 28 January 2026."
